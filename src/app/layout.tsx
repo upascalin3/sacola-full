@@ -1,6 +1,8 @@
-import type { Metadata } from "next";
+"use client";
+
 import { Manrope } from "next/font/google";
 import "./globals.css";
+import React, { useEffect, useState } from "react";
 
 const manrope = Manrope({
   variable: "--font-manrope",
@@ -9,23 +11,30 @@ const manrope = Manrope({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: "Login | SACOLA",
-  description: "Sign in to your SACOLA account",
-};
-
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const [initialLoading, setInitialLoading] = useState(true);
+  useEffect(() => {
+    const timer = setTimeout(() => setInitialLoading(false), 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <html lang="en">
       <body
         className={`${manrope.variable} antialiased`}
         style={{ fontFamily: "var(--font-manrope), system-ui, sans-serif" }}
       >
-        {children}
+        {initialLoading ? (
+          <div className="min-h-screen flex items-center justify-center bg-white">
+            <div className="w-12 h-12 border-4 border-[#54D12B] border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          children
+        )}
       </body>
     </html>
   );
