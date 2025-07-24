@@ -115,7 +115,7 @@ export default function DashboardPage() {
           </h2>
           <Card className="p-6">
             <ul className="divide-y divide-gray-100">
-              {recentActivities.map((activity, idx) => (
+              {recentActivities.slice(0, 4).map((activity, idx) => (
                 <li
                   key={idx}
                   className="flex items-start gap-4 py-4 first:pt-0 last:pb-0"
