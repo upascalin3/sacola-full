@@ -18,7 +18,7 @@ export default function RootLayout({
 }>) {
   const [initialLoading, setInitialLoading] = useState(true);
   useEffect(() => {
-    const timer = setTimeout(() => setInitialLoading(false), 2000);
+    const timer = setTimeout(() => setInitialLoading(false), 1000);
     return () => clearTimeout(timer);
   }, []);
 
