@@ -13,7 +13,7 @@ const conservationData = [
   { year: "2021", value: 40 },
   { year: "2022", value: 48 },
   { year: "2023", value: 32 },
-  { year: "2024", value: 56 }, 
+  { year: "2024", value: 56 },
   { year: "2025", value: 44 }, // current year
 ];
 const conservationActive = 4; // index of the active bar (current year)
@@ -21,7 +21,7 @@ const socioEconomicData = [
   { year: "2021", value: 36 },
   { year: "2022", value: 44 },
   { year: "2023", value: 28 },
-  { year: "2024", value: 40 }, 
+  { year: "2024", value: 40 },
   { year: "2025", value: 52 }, // current year
 ];
 const socioEconomicActive = 4;
@@ -82,25 +82,25 @@ export default function DashboardPage() {
           <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
           <div className="flex gap-4">
             <Link
-              href="/conservation"
+              href="/dashboard/conservation"
               className="px-6 py-2 rounded-full bg-[#54D12B] text-white font-semibold shadow-sm transition-colors hover:bg-[#54D12B] hover:text-white focus:bg-[#54D12B] focus:text-white"
             >
               Conservation
             </Link>
             <Link
-              href="/socio-economic"
+              href="/dashboard/socio-economic"
               className="px-6 py-2 rounded-full bg-gray-100 text-gray-800 font-semibold transition-colors hover:bg-[#54D12B] hover:text-white focus:bg-[#54D12B] focus:text-white"
             >
               Socio-Economic
             </Link>
             <Link
-              href="/reports"
+              href="/dashboard/reports"
               className="px-6 py-2 rounded-full bg-gray-100 text-gray-800 font-semibold transition-colors hover:bg-[#54D12B] hover:text-white focus:bg-[#54D12B] focus:text-white"
             >
               Reports
             </Link>
             <Link
-              href="/profile"
+              href="/dashboard/profile"
               className="px-6 py-2 rounded-full bg-gray-100 text-gray-800 font-semibold transition-colors hover:bg-[#54D12B] hover:text-white focus:bg-[#54D12B] focus:text-white"
             >
               Profile
