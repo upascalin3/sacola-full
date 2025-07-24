@@ -10,21 +10,21 @@ export const metadata = {
 };
 
 const conservationData = [
-  { year: "2019", value: 40 },
-  { year: "2020", value: 48 },
-  { year: "2021", value: 32 },
-  { year: "2022", value: 56 }, // current year
-  { year: "2023", value: 44 },
+  { year: "2021", value: 40 },
+  { year: "2022", value: 48 },
+  { year: "2023", value: 32 },
+  { year: "2024", value: 56 }, 
+  { year: "2025", value: 44 }, // current year
 ];
-const conservationActive = 3; // index of the active bar (current year)
+const conservationActive = 4; // index of the active bar (current year)
 const socioEconomicData = [
-  { year: "2019", value: 36 },
-  { year: "2020", value: 44 },
-  { year: "2021", value: 28 },
-  { year: "2022", value: 52 }, // current year
-  { year: "2023", value: 40 },
+  { year: "2021", value: 36 },
+  { year: "2022", value: 44 },
+  { year: "2023", value: 28 },
+  { year: "2024", value: 40 }, 
+  { year: "2025", value: 52 }, // current year
 ];
-const socioEconomicActive = 3;
+const socioEconomicActive = 4;
 
 const recentActivities = [
   {

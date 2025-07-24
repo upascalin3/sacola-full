@@ -32,7 +32,7 @@ export default function ProgressCharts({
         <div className="text-4xl font-bold mb-1">75%</div>
         <div className="text-sm text-gray-600 mb-4">
           Current Year{" "}
-          <span className="text-[#54D12B] font-semibold">+10%</span>
+          <span className="text-[#E81F08] font-semibold">-10%</span>
         </div>
         <div className="h-48 w-full">
           <ResponsiveContainer width="100%" height="100%">
