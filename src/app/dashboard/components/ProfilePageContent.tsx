@@ -35,7 +35,7 @@ export default function ProfilePageContent() {
   const [user, setUser] = useState({
     name: "John Doe",
     email: "john.doe@example.com",
-    role: "Admin",
+    role: "Data Manager",
     avatar: "",
     initials: "JD",
   });

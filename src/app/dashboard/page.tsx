@@ -62,7 +62,10 @@ export default function DashboardPage() {
           Welcome Back 👋
         </h1>
         <section className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">Summary</h2>
+          <h2 className="text-xl font-semibold mb-8 flex items-center">
+            <div className="w-2 h-8 bg-[#54D12B] rounded-full mr-3"></div>
+            Summary
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className="p-6 flex flex-col justify-center items-start">
               <span className="text-gray-700 text-base mb-2">
@@ -79,7 +82,10 @@ export default function DashboardPage() {
           </div>
         </section>
         <section className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
+          <h2 className="text-xl font-semibold mb-8 flex items-center">
+            <div className="w-2 h-8 bg-[#54D12B] rounded-full mr-3"></div>
+            Quick Actions
+          </h2>
           <div className="flex gap-4">
             <Link
               href="/dashboard/conservation"
@@ -109,7 +115,7 @@ export default function DashboardPage() {
         </section>
         {/* Recent Activity Section */}
         <div className="mt-12 mb-8">
-          <h2 className="text-xl font-bold text-gray-800 mb-8 flex items-center">
+          <h2 className="text-xl font-semibold mb-8 flex items-center">
             <div className="w-2 h-8 bg-[#54D12B] rounded-full mr-3"></div>
             Recent Activity
           </h2>
@@ -139,7 +145,10 @@ export default function DashboardPage() {
           </Card>
         </div>
         <section>
-          <h2 className="text-xl font-semibold mb-4">Progress Overview</h2>
+          <h2 className="text-xl font-semibold mb-8 flex items-center">
+            <div className="w-2 h-8 bg-[#54D12B] rounded-full mr-3"></div>
+            Progress Overview
+          </h2>
           <ProgressCharts
             conservationData={conservationData}
             conservationActive={conservationActive}
