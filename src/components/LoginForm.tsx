@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
@@ -15,6 +16,7 @@ export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({ email: "", password: "" });
   const [forgotLoading, setForgotLoading] = useState(false);
+  const { login } = useAuth();
 
   const validateForm = () => {
     const newErrors = { email: "", password: "" };
@@ -45,6 +47,7 @@ export default function LoginForm() {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
+      login(email); // Set authentication state
       router.push("/otp");
     }, 1000);
   };

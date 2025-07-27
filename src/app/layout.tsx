@@ -3,6 +3,7 @@
 import { Manrope } from "next/font/google";
 import "./globals.css";
 import React, { useEffect, useState } from "react";
+import { AuthProvider } from "@/lib/auth-context";
 
 const manrope = Manrope({
   variable: "--font-manrope",
@@ -33,7 +34,7 @@ export default function RootLayout({
             <div className="w-12 h-12 border-4 border-[#54D12B] border-t-transparent rounded-full animate-spin"></div>
           </div>
         ) : (
-          children
+          <AuthProvider>{children}</AuthProvider>
         )}
       </body>
     </html>

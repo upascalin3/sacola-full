@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { MailCheck } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
 
 export default function OtpPageContent() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -13,6 +14,7 @@ export default function OtpPageContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
+  const { userEmail, logout } = useAuth();
 
   useEffect(() => {
     if (counter <= 0) return;
@@ -95,7 +97,9 @@ export default function OtpPageContent() {
               Verify OTP
             </h2>
             <p className="text-gray-600 text-base">
-              An OTP has been sent to your email. Please enter it below.
+              An OTP has been sent to{" "}
+              <span className="font-semibold text-[#54D12B]">{userEmail}</span>.
+              Please enter it below.
             </p>
           </CardHeader>
           <CardContent className="space-y-6 px-8 pb-8">
@@ -160,9 +164,13 @@ export default function OtpPageContent() {
               >
                 Send Code Again
               </button>
-              <a href="/" className="text-sm text-gray-500 hover:underline">
+              <button
+                type="button"
+                onClick={logout}
+                className="text-sm text-gray-500 hover:underline"
+              >
                 Back to Login
-              </a>
+              </button>
             </div>
           </CardContent>
         </Card>

@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { MailCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
 
 export default function ForgotPasswordPageContent() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -15,6 +16,7 @@ export default function ForgotPasswordPageContent() {
   const [error, setError] = useState("");
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
   const router = useRouter();
+  const { login } = useAuth();
 
   useEffect(() => {
     if (counter <= 0) return;
@@ -64,6 +66,9 @@ export default function ForgotPasswordPageContent() {
         setError("Please enter the 6-digit OTP sent to your email.");
       } else {
         setError("");
+        // Set authentication state for password reset flow
+        // We'll use a temporary email since we don't have the actual email in this context
+        login("password-reset@temp.com");
         router.push("/reset-password");
       }
     }, 1000);
@@ -161,9 +166,13 @@ export default function ForgotPasswordPageContent() {
               >
                 Send Code Again
               </button>
-              <a href="/" className="text-sm text-gray-500 hover:underline">
+              <button
+                type="button"
+                onClick={() => router.push("/")}
+                className="text-sm text-gray-500 hover:underline"
+              >
                 Back to Login
-              </a>
+              </button>
             </div>
           </CardContent>
         </Card>

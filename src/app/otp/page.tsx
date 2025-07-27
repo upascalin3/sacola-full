@@ -1,4 +1,5 @@
 import OtpPageContent from "./OtpPageContent";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 export const metadata = {
   title: "OTP Verification | SACOLA",
@@ -6,5 +7,9 @@ export const metadata = {
 };
 
 export default function Page() {
-  return <OtpPageContent />;
+  return (
+    <ProtectedRoute>
+      <OtpPageContent />
+    </ProtectedRoute>
+  );
 }

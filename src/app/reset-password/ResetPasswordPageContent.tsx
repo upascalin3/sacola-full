@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Lock, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
 
 export default function ResetPasswordPageContent() {
   const [password, setPassword] = useState("");
@@ -15,7 +16,9 @@ export default function ResetPasswordPageContent() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
   const router = useRouter();
+  const { logout } = useAuth();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +33,11 @@ export default function ResetPasswordPageContent() {
         setError("Passwords do not match.");
       } else {
         setError("");
-        router.push("/");
+        setSuccess(true);
+        // Show success message for 2 seconds before redirecting
+        setTimeout(() => {
+          logout();
+        }, 2000);
       }
     }, 1000);
   };
@@ -120,12 +127,21 @@ export default function ResetPasswordPageContent() {
               {error && (
                 <p className="text-xs text-red-600 mt-1 text-center">{error}</p>
               )}
+              {success && (
+                <p className="text-xs text-green-600 mt-1 text-center">
+                  Password reset successful! Redirecting to login...
+                </p>
+              )}
               <Button
                 type="submit"
                 className="w-full h-12 bg-gradient-to-r from-[#54D12B] to-[#54D12B] text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={isSubmitting}
+                disabled={isSubmitting || success}
               >
-                {isSubmitting ? "Resetting..." : "Reset Password"}
+                {isSubmitting
+                  ? "Resetting..."
+                  : success
+                  ? "Success!"
+                  : "Reset Password"}
               </Button>
             </form>
           </CardContent>
@@ -138,4 +154,4 @@ export default function ResetPasswordPageContent() {
       </div>
     </div>
   );
-} 
+}

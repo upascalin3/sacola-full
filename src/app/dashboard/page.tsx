@@ -55,108 +55,103 @@ const recentActivities = [
 
 export default function DashboardPage() {
   return (
-    <div className="bg-[#FAFCF8] min-h-screen">
-      <Sidebar />
-      <main className="ml-64 py-7 px-10">
-        <h1 className="text-3xl font-bold mb-6 text-gray-900">
-          Welcome Back 👋
-        </h1>
-        <section className="mb-8">
-          <h2 className="text-xl font-semibold mb-8 flex items-center">
-            <div className="w-2 h-8 bg-[#54D12B] rounded-full mr-3"></div>
-            Summary
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="p-6 flex flex-col justify-center items-start">
-              <span className="text-gray-700 text-base mb-2">
-                Conservation Activities
-              </span>
-              <span className="text-3xl font-bold text-gray-900">8</span>
-            </Card>
-            <Card className="p-6 flex flex-col justify-center items-start">
-              <span className="text-gray-700 text-base mb-2">
-                Socio-Economic Activities
-              </span>
-              <span className="text-3xl font-bold text-gray-900">12</span>
-            </Card>
-          </div>
-        </section>
-        <section className="mb-8">
-          <h2 className="text-xl font-semibold mb-8 flex items-center">
-            <div className="w-2 h-8 bg-[#54D12B] rounded-full mr-3"></div>
-            Quick Actions
-          </h2>
-          <div className="flex gap-4">
-            <Link
-              href="/dashboard/conservation"
-              className="px-6 py-2 rounded-full bg-[#54D12B] text-white font-semibold shadow-sm transition-colors hover:bg-[#54D12B] hover:text-white focus:bg-[#54D12B] focus:text-white"
-            >
-              Conservation
-            </Link>
-            <Link
-              href="/dashboard/socio-economic"
-              className="px-6 py-2 rounded-full bg-gray-100 text-gray-800 font-semibold transition-colors hover:bg-[#54D12B] hover:text-white focus:bg-[#54D12B] focus:text-white"
-            >
-              Socio-Economic
-            </Link>
-            <Link
-              href="/dashboard/reports"
-              className="px-6 py-2 rounded-full bg-gray-100 text-gray-800 font-semibold transition-colors hover:bg-[#54D12B] hover:text-white focus:bg-[#54D12B] focus:text-white"
-            >
-              Reports
-            </Link>
-            <Link
-              href="/dashboard/profile"
-              className="px-6 py-2 rounded-full bg-gray-100 text-gray-800 font-semibold transition-colors hover:bg-[#54D12B] hover:text-white focus:bg-[#54D12B] focus:text-white"
-            >
-              Profile
-            </Link>
-          </div>
-        </section>
-        {/* Recent Activity Section */}
-        <div className="mt-12 mb-8">
-          <h2 className="text-xl font-semibold mb-8 flex items-center">
-            <div className="w-2 h-8 bg-[#54D12B] rounded-full mr-3"></div>
-            Recent Activity
-          </h2>
-          <Card className="p-6">
-            <ul className="divide-y divide-gray-100">
-              {recentActivities.slice(0, 4).map((activity, idx) => (
-                <li
-                  key={idx}
-                  className="flex items-start gap-4 py-4 first:pt-0 last:pb-0"
-                >
-                  <div className="flex-shrink-0">{activity.icon}</div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-gray-900">
-                      {activity.title}
-                    </div>
-                    <div className="text-gray-600 text-sm">
-                      {activity.description}
-                    </div>
-                  </div>
-                  <div className="flex items-center text-xs text-gray-400 gap-1">
-                    <Clock className="w-4 h-4" />
-                    {activity.time}
-                  </div>
-                </li>
-              ))}
-            </ul>
+    <main className="ml-64 py-7 px-10">
+      <h1 className="text-3xl font-bold mb-6 text-gray-900">Welcome Back 👋</h1>
+      <section className="mb-8">
+        <h2 className="text-xl font-semibold mb-8 flex items-center">
+          <div className="w-2 h-8 bg-[#54D12B] rounded-full mr-3"></div>
+          Summary
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="p-6 flex flex-col justify-center items-start">
+            <span className="text-gray-700 text-base mb-2">
+              Conservation Activities
+            </span>
+            <span className="text-3xl font-bold text-gray-900">8</span>
+          </Card>
+          <Card className="p-6 flex flex-col justify-center items-start">
+            <span className="text-gray-700 text-base mb-2">
+              Socio-Economic Activities
+            </span>
+            <span className="text-3xl font-bold text-gray-900">12</span>
           </Card>
         </div>
-        <section>
-          <h2 className="text-xl font-semibold mb-8 flex items-center">
-            <div className="w-2 h-8 bg-[#54D12B] rounded-full mr-3"></div>
-            Progress Overview
-          </h2>
-          <ProgressCharts
-            conservationData={conservationData}
-            conservationActive={conservationActive}
-            socioEconomicData={socioEconomicData}
-            socioEconomicActive={socioEconomicActive}
-          />
-        </section>
-      </main>
-    </div>
+      </section>
+      <section className="mb-8">
+        <h2 className="text-xl font-semibold mb-8 flex items-center">
+          <div className="w-2 h-8 bg-[#54D12B] rounded-full mr-3"></div>
+          Quick Actions
+        </h2>
+        <div className="flex gap-4">
+          <Link
+            href="/dashboard/conservation"
+            className="px-6 py-2 rounded-full bg-[#54D12B] text-white font-semibold shadow-sm transition-colors hover:bg-[#54D12B] hover:text-white focus:bg-[#54D12B] focus:text-white"
+          >
+            Conservation
+          </Link>
+          <Link
+            href="/dashboard/socio-economic"
+            className="px-6 py-2 rounded-full bg-gray-100 text-gray-800 font-semibold transition-colors hover:bg-[#54D12B] hover:text-white focus:bg-[#54D12B] focus:text-white"
+          >
+            Socio-Economic
+          </Link>
+          <Link
+            href="/dashboard/reports"
+            className="px-6 py-2 rounded-full bg-gray-100 text-gray-800 font-semibold transition-colors hover:bg-[#54D12B] hover:text-white focus:bg-[#54D12B] focus:text-white"
+          >
+            Reports
+          </Link>
+          <Link
+            href="/dashboard/profile"
+            className="px-6 py-2 rounded-full bg-gray-100 text-gray-800 font-semibold transition-colors hover:bg-[#54D12B] hover:text-white focus:bg-[#54D12B] focus:text-white"
+          >
+            Profile
+          </Link>
+        </div>
+      </section>
+      {/* Recent Activity Section */}
+      <div className="mt-12 mb-8">
+        <h2 className="text-xl font-semibold mb-8 flex items-center">
+          <div className="w-2 h-8 bg-[#54D12B] rounded-full mr-3"></div>
+          Recent Activity
+        </h2>
+        <Card className="p-6">
+          <ul className="divide-y divide-gray-100">
+            {recentActivities.slice(0, 4).map((activity, idx) => (
+              <li
+                key={idx}
+                className="flex items-start gap-4 py-4 first:pt-0 last:pb-0"
+              >
+                <div className="flex-shrink-0">{activity.icon}</div>
+                <div className="flex-1">
+                  <div className="font-semibold text-gray-900">
+                    {activity.title}
+                  </div>
+                  <div className="text-gray-600 text-sm">
+                    {activity.description}
+                  </div>
+                </div>
+                <div className="flex items-center text-xs text-gray-400 gap-1">
+                  <Clock className="w-4 h-4" />
+                  {activity.time}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      </div>
+      <section>
+        <h2 className="text-xl font-semibold mb-8 flex items-center">
+          <div className="w-2 h-8 bg-[#54D12B] rounded-full mr-3"></div>
+          Progress Overview
+        </h2>
+        <ProgressCharts
+          conservationData={conservationData}
+          conservationActive={conservationActive}
+          socioEconomicData={socioEconomicData}
+          socioEconomicActive={socioEconomicActive}
+        />
+      </section>
+    </main>
   );
 }

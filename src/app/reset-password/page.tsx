@@ -1,4 +1,5 @@
 import ResetPasswordPageContent from "./ResetPasswordPageContent";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 export const metadata = {
   title: "Reset Password | SACOLA",
@@ -6,5 +7,9 @@ export const metadata = {
 };
 
 export default function Page() {
-  return <ResetPasswordPageContent />;
+  return (
+    <ProtectedRoute>
+      <ResetPasswordPageContent />
+    </ProtectedRoute>
+  );
 }
