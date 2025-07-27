@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import AnalyticsPageContent from "../../components/AnalyticsPageContent";
 
 export const metadata: Metadata = {
-  title: "Analytics | SACOLA Reports",
+  title: "Analytics | SACOLA",
   description: "View analytics",
 };
 
