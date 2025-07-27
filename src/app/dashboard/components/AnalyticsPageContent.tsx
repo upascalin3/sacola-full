@@ -304,7 +304,7 @@ export default function AnalyticsPageContent() {
       <main className="ml-64 py-7 px-10">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold text-gray-900">
-            Beneficiary Analytics
+            Analytics
           </h1>
           <Link
             href="/dashboard/reports"
