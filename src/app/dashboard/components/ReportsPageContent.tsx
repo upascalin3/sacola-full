@@ -236,13 +236,6 @@ in the ${report.category} category.
 The report covers the period from ${report.startDate} to ${report.endDate} 
 and contains detailed analytics, metrics, and insights related to the project performance.
 
-Key highlights include:
-• Beneficiary statistics
-• Project milestones and achievements
-• Impact assessment and outcomes
-• Recommendations for future improvements
-• Risk analysis and mitigation strategies
-
 SUMMARY:
 This report provides a comprehensive overview of the ${report.projectType} 
 project performance during the specified reporting period. All metrics and 
