@@ -237,9 +237,8 @@ The report covers the period from ${report.startDate} to ${report.endDate}
 and contains detailed analytics, metrics, and insights related to the project performance.
 
 Key highlights include:
-• Beneficiary statistics and demographics
+• Beneficiary statistics
 • Project milestones and achievements
-• Budget utilization and financial metrics
 • Impact assessment and outcomes
 • Recommendations for future improvements
 • Risk analysis and mitigation strategies
