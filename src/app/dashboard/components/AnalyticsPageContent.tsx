@@ -303,9 +303,7 @@ export default function AnalyticsPageContent() {
     <div className="bg-[#FAFCF8] min-h-screen">
       <main className="ml-64 py-7 px-10">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Analytics
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900">Analytics</h1>
           <Link
             href="/dashboard/reports"
             className="px-6 py-2 rounded-full bg-gray-600 text-white font-semibold shadow-sm transition-colors hover:bg-gray-700 flex items-center gap-2"
