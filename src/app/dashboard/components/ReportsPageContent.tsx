@@ -234,7 +234,7 @@ This is a ${report.reportType} report for ${report.projectType}
 in the ${report.category} category.
 
 The report covers the period from ${report.startDate} to ${report.endDate} 
-and contains detailed analytics, metrics, and insights related to the project performance.
+and contains detailed analytics and metrics related to the project performance.
 
 SUMMARY:
 This report provides a comprehensive overview of the ${report.projectType} 
