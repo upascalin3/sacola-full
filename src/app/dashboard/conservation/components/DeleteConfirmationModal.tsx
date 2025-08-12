@@ -3,11 +3,16 @@
 import React from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { 
+  ConservationType, 
+  CONSERVATION_CONFIGS 
+} from '@/lib/conservation/types';
 
 interface DeleteConfirmationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  conservationType: ConservationType;
   itemName?: string;
 }
 
@@ -15,9 +20,13 @@ export default function DeleteConfirmationModal({
   isOpen,
   onClose,
   onConfirm,
-  itemName = "this entry",
+  conservationType,
+  itemName,
 }: DeleteConfirmationModalProps) {
   if (!isOpen) return null;
+  
+  const config = CONSERVATION_CONFIGS[conservationType];
+  const displayName = itemName || `this ${config.title.toLowerCase()} entry`;
 
   return (
     <div className="fixed inset-0 bg-[#000000]/30 flex items-center justify-center z-50">
@@ -38,7 +47,7 @@ export default function DeleteConfirmationModal({
 
         <div className="mb-8">
           <p className="text-gray-700 text-center">
-            Are you sure you want to delete {itemName}?
+            Are you sure you want to delete {displayName}? This action cannot be undone.
           </p>
         </div>
 

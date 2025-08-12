@@ -3,8 +3,10 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Plus, ExternalLink, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ConservationTabs from "../components/ConservationTabs";
+import SearchAndFilters from "../components/SearchAndFilters";
+import Pagination from "../components/Pagination";
 import { useRouter, useSearchParams } from "next/navigation";
-import ConservationTabs from "./components/ConservationTabs";
 import {
   CreateEntryModal,
   UpdateEntryModal,
@@ -12,165 +14,67 @@ import {
   DeleteConfirmationModal,
   ConservationData,
   ConservationType,
-} from "./components";
-import { TreeEntryData } from "@/lib/conservation/conservation";
-import SearchAndFilters from "./components/SearchAndFilters";
-import Pagination from "./components/Pagination";
+} from "../components";
+import { buffaloWallEntryData } from "@/lib/conservation/conservation";
 
-const initialTreePlantingData: TreeEntryData[] = [
+const initialBuffaloWallData: buffaloWallEntryData[] = [
   {
     id: "1",
-    treeType: "Avocados",
-    location: "Nyange",
-    numberOfTrees: 1000,
-    datePlanted: new Date("2024-03-15"),
-    targetBeneficiaries: 1000,
-    currentBeneficiaries: 834,
-    description:
-      "Today we planted trees and all the trees that we gave were planted so it was successful",
+    dateRepaired: new Date("2024-03-15"),
+    cost: 50000,
   },
   {
     id: "2",
-    treeType: "Passion Fruits",
-    location: "Kinigi",
-    numberOfTrees: 300,
-    datePlanted: new Date("2024-02-20"),
-    targetBeneficiaries: 300,
-    currentBeneficiaries: 250,
-    description: "Passion fruit trees planted in Kinigi area",
-  },
-  {
-    id: "3",
-    treeType: "Ornament Trees",
-    location: "Kinigi",
-    numberOfTrees: 1000,
-    datePlanted: new Date("2024-01-10"),
-    targetBeneficiaries: 500,
-    currentBeneficiaries: 450,
-    description: "Ornamental trees for beautification",
-  },
-  {
-    id: "4",
-    treeType: "Seedlings",
-    location: "Nyange",
-    numberOfTrees: 200,
-    datePlanted: new Date("2024-04-05"),
-    targetBeneficiaries: 200,
-    currentBeneficiaries: 180,
-    description: "Various seedling types planted",
-  },
-  {
-    id: "5",
-    treeType: "Forest Trees",
-    location: "Kinigi",
-    numberOfTrees: 400,
-    datePlanted: new Date("2024-03-01"),
-    targetBeneficiaries: 400,
-    currentBeneficiaries: 380,
-    description: "Forest conservation trees",
-  },
-  {
-    id: "6",
-    treeType: "Mango Trees",
-    location: "Nyange",
-    numberOfTrees: 150,
-    datePlanted: new Date("2024-05-10"),
-    targetBeneficiaries: 150,
-    currentBeneficiaries: 120,
-    description: "Mango trees for fruit production",
-  },
-  {
-    id: "7",
-    treeType: "Coffee Trees",
-    location: "Kinigi",
-    numberOfTrees: 800,
-    datePlanted: new Date("2024-04-20"),
-    targetBeneficiaries: 600,
-    currentBeneficiaries: 550,
-    description: "Coffee trees for economic development",
-  },
-  {
-    id: "8",
-    treeType: "Tea Trees",
-    location: "Nyange",
-    numberOfTrees: 600,
-    datePlanted: new Date("2024-03-25"),
-    targetBeneficiaries: 400,
-    currentBeneficiaries: 380,
-    description: "Tea trees for sustainable agriculture",
+    dateRepaired: new Date("2024-02-20"),
+    cost: 75000,
   },
 ];
 
-export default function ConservationPage() {
+export default function BuffaloWallPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [treeData, setTreeData] = useState<TreeEntryData[]>(
-    initialTreePlantingData
-  );
+  const [buffaloWallData, setBuffaloWallData] = useState<
+    buffaloWallEntryData[]
+  >(initialBuffaloWallData);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedEntry, setSelectedEntry] = useState<TreeEntryData | null>(
-    null
-  );
-
-  // Search and pagination states
+  const [selectedEntry, setSelectedEntry] =
+    useState<buffaloWallEntryData | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
 
-  // Check for ID parameter in URL and open details modal
-  useEffect(() => {
-    const id = searchParams.get("id");
-    if (id) {
-      const entry = treeData.find((item) => item.id === id);
-      if (entry) {
-        setSelectedEntry(entry);
-        setIsDetailsModalOpen(true);
-      }
-    }
-  }, [searchParams, treeData]);
-
-  // Filter and search data
+  // Filter data based on search
   const filteredData = useMemo(() => {
-    return treeData.filter((item) => {
+    return buffaloWallData.filter((item) => {
       const matchesSearch =
         searchTerm === "" ||
-        item.treeType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.description.toLowerCase().includes(searchTerm.toLowerCase());
+        item.cost.toString().includes(searchTerm) ||
+        item.dateRepaired.toLocaleDateString().includes(searchTerm);
 
       return matchesSearch;
     });
-  }, [treeData, searchTerm]);
-
-  // Paginate data
-  const paginatedData = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredData.slice(startIndex, endIndex);
-  }, [filteredData, currentPage, itemsPerPage]);
-
-  const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
+  }, [buffaloWallData, searchTerm]);
 
   const handleCreateEntry = (data: ConservationData) => {
-    const newEntry: TreeEntryData = {
-      ...(data as Omit<TreeEntryData, "id">),
+    const newEntry: buffaloWallEntryData = {
+      ...(data as Omit<buffaloWallEntryData, "id">),
       id: Date.now().toString(),
     };
-    setTreeData((prev) => [...prev, newEntry]);
+    setBuffaloWallData((prev) => [...prev, newEntry]);
     setIsCreateModalOpen(false);
   };
 
-  const handleViewDetails = (entry: TreeEntryData) => {
-    router.push(`/dashboard/conservation?id=${entry.id}`);
+  const handleViewDetails = (entry: buffaloWallEntryData) => {
+    router.push(`/dashboard/conservation/buffalo-wall?id=${entry.id}`);
   };
 
   const handleCloseDetails = () => {
     setIsDetailsModalOpen(false);
     setSelectedEntry(null);
-    router.push("/dashboard/conservation");
+    router.push(`/dashboard/conservation/buffalo-wall`);
   };
 
   const handleEdit = () => {
@@ -180,11 +84,11 @@ export default function ConservationPage() {
 
   const handleUpdateEntry = (data: ConservationData) => {
     if (selectedEntry) {
-      const updatedEntry: TreeEntryData = {
-        ...(data as Omit<TreeEntryData, "id">),
+      const updatedEntry: buffaloWallEntryData = {
+        ...(data as Omit<buffaloWallEntryData, "id">),
         id: selectedEntry.id,
       };
-      setTreeData((prev) =>
+      setBuffaloWallData((prev) =>
         prev.map((item) => (item.id === selectedEntry.id ? updatedEntry : item))
       );
       setIsUpdateModalOpen(false);
@@ -194,14 +98,14 @@ export default function ConservationPage() {
 
   const handleDelete = () => {
     if (selectedEntry) {
-      setTreeData((prev) =>
+      setBuffaloWallData((prev) =>
         prev.filter((entry) => entry.id !== selectedEntry.id)
       );
       setSelectedEntry(null);
     }
     setIsDeleteModalOpen(false);
     setIsDetailsModalOpen(false);
-    router.push("/dashboard/conservation");
+    router.push(`/dashboard/conservation/buffalo-wall`);
   };
 
   const handleDeleteClick = () => {
@@ -209,22 +113,45 @@ export default function ConservationPage() {
     setIsDeleteModalOpen(true);
   };
 
+  // Pagination
+  const filteredSortedData = filteredData; // keep as-is, but placeholder if we need sorting
+  const paginatedData = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredSortedData.slice(startIndex, endIndex);
+  }, [filteredSortedData, currentPage, itemsPerPage]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredSortedData.length / itemsPerPage)
+  );
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
 
   const handleItemsPerPageChange = (newItemsPerPage: number) => {
     setItemsPerPage(newItemsPerPage);
-    setCurrentPage(1); // Reset to first page when changing items per page
+    setCurrentPage(1);
   };
+
+  // Open details from URL id
+  useEffect(() => {
+    const id = searchParams.get("id");
+    if (id) {
+      const entry = buffaloWallData.find((item) => item.id === id);
+      if (entry) {
+        setSelectedEntry(entry);
+        setIsDetailsModalOpen(true);
+      }
+    }
+  }, [searchParams, buffaloWallData]);
 
   return (
     <div className="ml-64">
       <div className="max-w-7xl mx-auto">
-        {/* Tabs */}
         <ConservationTabs />
 
-        {/* Main Content */}
         <div className="p-8">
           {/* Add New Entry Button */}
           <div className="mb-6">
@@ -233,7 +160,7 @@ export default function ConservationPage() {
               className="bg-[#54D12B] text-white hover:bg-[#43b71f]"
             >
               <Plus size={20} className="mr-2" />
-              Add New Tree Entry
+              Add New Buffalo Wall Entry
             </Button>
           </div>
 
@@ -243,11 +170,10 @@ export default function ConservationPage() {
             onSearchChange={setSearchTerm}
           />
 
-          {/* Tree Planting Table */}
-          {searchTerm.trim() !== "" && filteredData.length === 0 ? (
+          {/* Buffalo Wall Table */}
+          {searchTerm.trim() !== "" && filteredSortedData.length === 0 ? (
             <div className="bg-white rounded-lg border border-gray-200 p-8 text-center text-gray-700 mb-6">
-              <span className="font-medium">"{searchTerm}"</span> not
-              found
+              <span className="font-medium">"{searchTerm}"</span> not found
             </div>
           ) : (
             <div className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-6">
@@ -256,13 +182,10 @@ export default function ConservationPage() {
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
                       <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">
-                        Type
+                        Date Repaired
                       </th>
                       <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">
-                        Location
-                      </th>
-                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">
-                        Number of Trees
+                        Cost (RWF)
                       </th>
                       <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">
                         Actions
@@ -273,13 +196,10 @@ export default function ConservationPage() {
                     {paginatedData.map((item) => (
                       <tr key={item.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 text-sm text-gray-900">
-                          {item.treeType}
+                          {item.dateRepaired.toLocaleDateString()}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
-                          {item.location}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          {item.numberOfTrees.toLocaleString()}
+                          {item.cost.toLocaleString()} RWF
                         </td>
                         <td className="px-6 py-4 text-sm">
                           <div className="flex gap-4">
@@ -315,7 +235,7 @@ export default function ConservationPage() {
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={handlePageChange}
-            totalItems={filteredData.length}
+            totalItems={filteredSortedData.length}
             itemsPerPage={itemsPerPage}
             onItemsPerPageChange={handleItemsPerPageChange}
           />
@@ -327,7 +247,7 @@ export default function ConservationPage() {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSubmit={handleCreateEntry}
-        conservationType="tree"
+        conservationType="buffaloWall"
       />
 
       <DetailsModal
@@ -336,7 +256,7 @@ export default function ConservationPage() {
         data={selectedEntry}
         onEdit={handleEdit}
         onDelete={handleDeleteClick}
-        conservationType="tree"
+        conservationType="buffaloWall"
       />
 
       <UpdateEntryModal
@@ -344,15 +264,14 @@ export default function ConservationPage() {
         onClose={() => setIsUpdateModalOpen(false)}
         onSubmit={handleUpdateEntry}
         initialData={selectedEntry}
-        conservationType="tree"
+        conservationType="buffaloWall"
       />
 
       <DeleteConfirmationModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={handleDelete}
-        conservationType="tree"
-        itemName={selectedEntry?.treeType}
+        conservationType="buffaloWall"
       />
     </div>
   );

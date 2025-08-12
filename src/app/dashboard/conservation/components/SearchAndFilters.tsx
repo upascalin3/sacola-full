@@ -24,7 +24,7 @@ export default function SearchAndFilters({
               size={20}
             />
             <Input
-              placeholder="Search by tree type, location, or description..."
+              placeholder="Search entry"
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
               className="pl-10 bg-[#F0F8F0] border-gray-300 focus:ring-[#54D12B] focus:border-[#54D12B]"
