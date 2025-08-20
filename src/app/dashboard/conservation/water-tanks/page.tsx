@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
-import { Plus, ExternalLink, Download } from "lucide-react";
+import { Plus, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ConservationTabs from "../components/ConservationTabs";
 import SearchAndFilters from "../components/SearchAndFilters";
@@ -230,14 +230,6 @@ export default function WaterTanksPage() {
                             >
                               <ExternalLink size={14} />
                               View More
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="flex items-center gap-1 text-[#54D12B] hover:text-[#43b71f] p-0 h-auto"
-                            >
-                              <Download size={14} />
-                              Download
                             </Button>
                           </div>
                         </td>

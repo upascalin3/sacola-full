@@ -4,114 +4,66 @@ import React, { useState, useMemo, useEffect } from "react";
 import { Plus, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter, useSearchParams } from "next/navigation";
-import ConservationTabs from "./components/ConservationTabs";
+import { SocioEconomicTabs } from "../../components";
 import {
   CreateEntryModal,
   UpdateEntryModal,
   DetailsModal,
   DeleteConfirmationModal,
-  ConservationData,
-  ConservationType,
-} from "./components";
-import { TreeEntryData } from "@/lib/conservation/conservation";
-import SearchAndFilters from "./components/SearchAndFilters";
-import Pagination from "./components/Pagination";
+  SocioEconomicData,
+  SocioEconomicType,
+} from "../../components";
+import { HousingHousesEntryData } from "@/lib/socio-economic/socio-economic";
+import SearchAndFilters from "../../components/SearchAndFilters";
+import Pagination from "../../components/Pagination";
 
-const initialTreePlantingData: TreeEntryData[] = [
+const Data: HousingHousesEntryData[] = [  
   {
     id: "1",
-    treeType: "Avocados",
+    houseCategory: "Vulnerable",
     location: "Nyange",
-    numberOfTrees: 1000,
-    datePlanted: new Date("2024-03-15"),
-    targetBeneficiaries: 1000,
-    currentBeneficiaries: 834,
+    dateBuilt: new Date("2024-03-15"),
+    houseOwner: "John Doe",
+    houseCondition: "Good",
+    materials: "Chairs, 3 Mattresses, 2 Pillows",
     description:
       "Today we planted trees and all the trees that we gave were planted so it was successful",
   },
   {
     id: "2",
-    treeType: "Passion Fruits",
+    houseCategory: "1994 Genocide Survivor",
     location: "Kinigi",
-    numberOfTrees: 300,
-    datePlanted: new Date("2024-02-20"),
-    targetBeneficiaries: 300,
-    currentBeneficiaries: 250,
-    description: "Passion fruit trees planted in Kinigi area",
+    dateBuilt: new Date("2024-03-15"),
+    houseOwner: "John Doe",
+    houseCondition: "Good",
+    materials: "Chairs, 3 Mattresses, 2 Pillows",
+    description:
+      "Today we planted trees and all the trees that we gave were planted so it was successful",
   },
   {
     id: "3",
-    treeType: "Ornament Trees",
+    houseCategory: "Vulnerable",
     location: "Kinigi",
-    numberOfTrees: 1000,
-    datePlanted: new Date("2024-01-10"),
-    targetBeneficiaries: 500,
-    currentBeneficiaries: 450,
-    description: "Ornamental trees for beautification",
-  },
-  {
-    id: "4",
-    treeType: "Seedlings",
-    location: "Nyange",
-    numberOfTrees: 200,
-    datePlanted: new Date("2024-04-05"),
-    targetBeneficiaries: 200,
-    currentBeneficiaries: 180,
-    description: "Various seedling types planted",
-  },
-  {
-    id: "5",
-    treeType: "Forest Trees",
-    location: "Kinigi",
-    numberOfTrees: 400,
-    datePlanted: new Date("2024-03-01"),
-    targetBeneficiaries: 400,
-    currentBeneficiaries: 380,
-    description: "Forest conservation trees",
-  },
-  {
-    id: "6",
-    treeType: "Mango Trees",
-    location: "Nyange",
-    numberOfTrees: 150,
-    datePlanted: new Date("2024-05-10"),
-    targetBeneficiaries: 150,
-    currentBeneficiaries: 120,
-    description: "Mango trees for fruit production",
-  },
-  {
-    id: "7",
-    treeType: "Coffee Trees",
-    location: "Kinigi",
-    numberOfTrees: 800,
-    datePlanted: new Date("2024-04-20"),
-    targetBeneficiaries: 600,
-    currentBeneficiaries: 550,
-    description: "Coffee trees for economic development",
-  },
-  {
-    id: "8",
-    treeType: "Tea Trees",
-    location: "Nyange",
-    numberOfTrees: 600,
-    datePlanted: new Date("2024-03-25"),
-    targetBeneficiaries: 400,
-    currentBeneficiaries: 380,
-    description: "Tea trees for sustainable agriculture",
+    dateBuilt: new Date("2024-03-15"),
+    houseOwner: "John Doe",
+    houseCondition: "Good",
+    materials: "Chairs, 3 Mattresses, 2 Pillows",
+    description:
+      "Today we planted trees and all the trees that we gave were planted so it was successful",
   },
 ];
 
-export default function ConservationPage() {
+export default function HousingHousesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [treeData, setTreeData] = useState<TreeEntryData[]>(
-    initialTreePlantingData
+  const [treeData, setTreeData] = useState<HousingHousesEntryData[]>(
+    Data
   );
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedEntry, setSelectedEntry] = useState<TreeEntryData | null>(
+  const [selectedEntry, setSelectedEntry] = useState<HousingHousesEntryData | null>(
     null
   );
 
@@ -137,7 +89,7 @@ export default function ConservationPage() {
     return treeData.filter((item) => {
       const matchesSearch =
         searchTerm === "" ||
-        item.treeType.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.houseCategory.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.description.toLowerCase().includes(searchTerm.toLowerCase());
 
@@ -154,23 +106,23 @@ export default function ConservationPage() {
 
   const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
 
-  const handleCreateEntry = (data: ConservationData) => {
-    const newEntry: TreeEntryData = {
-      ...(data as Omit<TreeEntryData, "id">),
+  const handleCreateEntry = (data: SocioEconomicData) => {
+    const newEntry: HousingHousesEntryData = {
+      ...(data as Omit<HousingHousesEntryData, "id">),
       id: Date.now().toString(),
     };
     setTreeData((prev) => [...prev, newEntry]);
     setIsCreateModalOpen(false);
   };
 
-  const handleViewDetails = (entry: TreeEntryData) => {
-    router.push(`/dashboard/conservation?id=${entry.id}`);
+  const handleViewDetails = (entry: HousingHousesEntryData) => {
+    router.push(`/dashboard/socio-economic/housing/houses?id=${entry.id}`);
   };
 
   const handleCloseDetails = () => {
     setIsDetailsModalOpen(false);
     setSelectedEntry(null);
-    router.push("/dashboard/conservation");
+    router.push("/dashboard/socio-economic/housing/houses");
   };
 
   const handleEdit = () => {
@@ -178,10 +130,10 @@ export default function ConservationPage() {
     setIsUpdateModalOpen(true);
   };
 
-  const handleUpdateEntry = (data: ConservationData) => {
+  const handleUpdateEntry = (data: SocioEconomicData) => {
     if (selectedEntry) {
-      const updatedEntry: TreeEntryData = {
-        ...(data as Omit<TreeEntryData, "id">),
+      const updatedEntry: HousingHousesEntryData = {
+        ...(data as Omit<HousingHousesEntryData, "id">),
         id: selectedEntry.id,
       };
       setTreeData((prev) =>
@@ -201,7 +153,7 @@ export default function ConservationPage() {
     }
     setIsDeleteModalOpen(false);
     setIsDetailsModalOpen(false);
-    router.push("/dashboard/conservation");
+    router.push("/dashboard/socio-economic/housing/houses");
   };
 
   const handleDeleteClick = () => {
@@ -222,7 +174,7 @@ export default function ConservationPage() {
     <div className="ml-64">
       <div className="max-w-7xl mx-auto">
         {/* Tabs */}
-        <ConservationTabs />
+        <SocioEconomicTabs />
 
         {/* Main Content */}
         <div className="p-8">
@@ -233,7 +185,7 @@ export default function ConservationPage() {
               className="bg-[#54D12B] text-white hover:bg-[#43b71f]"
             >
               <Plus size={20} className="mr-2" />
-              Add New Tree Entry
+              Add New Entry
             </Button>
           </div>
 
@@ -256,13 +208,13 @@ export default function ConservationPage() {
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
                       <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">
-                        Type
+                        Category
+                      </th>
+                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">
+                        Owner
                       </th>
                       <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">
                         Location
-                      </th>
-                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">
-                        Number of Trees
                       </th>
                       <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">
                         Actions
@@ -273,13 +225,13 @@ export default function ConservationPage() {
                     {paginatedData.map((item) => (
                       <tr key={item.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 text-sm text-gray-900">
-                          {item.treeType}
+                          {item.houseCategory}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900">
+                          {item.houseOwner}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
                           {item.location}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          {item.numberOfTrees.toLocaleString()}
                         </td>
                         <td className="px-6 py-4 text-sm">
                           <div className="flex gap-4">
@@ -319,7 +271,7 @@ export default function ConservationPage() {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSubmit={handleCreateEntry}
-        conservationType="tree"
+        socioEconomicType="housingHouses"
       />
 
       <DetailsModal
@@ -328,7 +280,7 @@ export default function ConservationPage() {
         data={selectedEntry}
         onEdit={handleEdit}
         onDelete={handleDeleteClick}
-        conservationType="tree"
+        socioEconomicType="housingHouses"
       />
 
       <UpdateEntryModal
@@ -336,15 +288,15 @@ export default function ConservationPage() {
         onClose={() => setIsUpdateModalOpen(false)}
         onSubmit={handleUpdateEntry}
         initialData={selectedEntry}
-        conservationType="tree"
+        socioEconomicType="housingHouses"
       />
 
       <DeleteConfirmationModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={handleDelete}
-        conservationType="tree"
-        itemName={selectedEntry?.treeType}
+        socioEconomicType="housingHouses"
+        itemName={selectedEntry?.houseCategory}
       />
     </div>
   );

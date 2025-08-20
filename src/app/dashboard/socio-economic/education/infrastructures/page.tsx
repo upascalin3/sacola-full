@@ -4,116 +4,68 @@ import React, { useState, useMemo, useEffect } from "react";
 import { Plus, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter, useSearchParams } from "next/navigation";
-import ConservationTabs from "./components/ConservationTabs";
+import { SocioEconomicTabs } from "../../components";
 import {
   CreateEntryModal,
   UpdateEntryModal,
   DetailsModal,
   DeleteConfirmationModal,
-  ConservationData,
-  ConservationType,
-} from "./components";
-import { TreeEntryData } from "@/lib/conservation/conservation";
-import SearchAndFilters from "./components/SearchAndFilters";
-import Pagination from "./components/Pagination";
+  SocioEconomicData,
+  SocioEconomicType,
+} from "../../components";
+import { educationInfrastructuresEntryData } from "@/lib/socio-economic/socio-economic";
+import SearchAndFilters from "../../components/SearchAndFilters";
+import Pagination from "../../components/Pagination";
 
-const initialTreePlantingData: TreeEntryData[] = [
+const Data: educationInfrastructuresEntryData[] = [
   {
     id: "1",
-    treeType: "Avocados",
-    location: "Nyange",
-    numberOfTrees: 1000,
-    datePlanted: new Date("2024-03-15"),
-    targetBeneficiaries: 1000,
-    currentBeneficiaries: 834,
+    schoolName: "Nyange Primary School",
+    location: "Nyange Sector",
+    infrastructureType: "Primary",
+    dateDonated: new Date("2023-06-15"),
     description:
-      "Today we planted trees and all the trees that we gave were planted so it was successful",
+      "Complete primary school building with 8 classrooms, office, and library",
   },
   {
     id: "2",
-    treeType: "Passion Fruits",
-    location: "Kinigi",
-    numberOfTrees: 300,
-    datePlanted: new Date("2024-02-20"),
-    targetBeneficiaries: 300,
-    currentBeneficiaries: 250,
-    description: "Passion fruit trees planted in Kinigi area",
+    schoolName: "Kinigi Secondary School",
+    location: "Kinigi Sector",
+    infrastructureType: "Ordinary Level",
+    dateDonated: new Date("2023-09-20"),
+    description: "Secondary school building with science lab and computer room",
   },
   {
     id: "3",
-    treeType: "Ornament Trees",
-    location: "Kinigi",
-    numberOfTrees: 1000,
-    datePlanted: new Date("2024-01-10"),
-    targetBeneficiaries: 500,
-    currentBeneficiaries: 450,
-    description: "Ornamental trees for beautification",
+    schoolName: "Ruhondo Early Childhood Center",
+    location: "Ruhondo Sector",
+    infrastructureType: "ECD",
+    dateDonated: new Date("2024-01-10"),
+    description:
+      "Early childhood development center with play area and learning materials",
   },
   {
     id: "4",
-    treeType: "Seedlings",
-    location: "Nyange",
-    numberOfTrees: 200,
-    datePlanted: new Date("2024-04-05"),
-    targetBeneficiaries: 200,
-    currentBeneficiaries: 180,
-    description: "Various seedling types planted",
-  },
-  {
-    id: "5",
-    treeType: "Forest Trees",
-    location: "Kinigi",
-    numberOfTrees: 400,
-    datePlanted: new Date("2024-03-01"),
-    targetBeneficiaries: 400,
-    currentBeneficiaries: 380,
-    description: "Forest conservation trees",
-  },
-  {
-    id: "6",
-    treeType: "Mango Trees",
-    location: "Nyange",
-    numberOfTrees: 150,
-    datePlanted: new Date("2024-05-10"),
-    targetBeneficiaries: 150,
-    currentBeneficiaries: 120,
-    description: "Mango trees for fruit production",
-  },
-  {
-    id: "7",
-    treeType: "Coffee Trees",
-    location: "Kinigi",
-    numberOfTrees: 800,
-    datePlanted: new Date("2024-04-20"),
-    targetBeneficiaries: 600,
-    currentBeneficiaries: 550,
-    description: "Coffee trees for economic development",
-  },
-  {
-    id: "8",
-    treeType: "Tea Trees",
-    location: "Nyange",
-    numberOfTrees: 600,
-    datePlanted: new Date("2024-03-25"),
-    targetBeneficiaries: 400,
-    currentBeneficiaries: 380,
-    description: "Tea trees for sustainable agriculture",
+    schoolName: "Musanze Vocational Training Center",
+    location: "Musanze District",
+    infrastructureType: "Vocational Training",
+    dateDonated: new Date("2023-12-05"),
+    description:
+      "Vocational training facility for carpentry, welding, and tailoring",
   },
 ];
 
-export default function ConservationPage() {
+export default function EducationInfrastructuresPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [treeData, setTreeData] = useState<TreeEntryData[]>(
-    initialTreePlantingData
-  );
+  const [infrastructuresData, setInfrastructuresData] =
+    useState<educationInfrastructuresEntryData[]>(Data);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedEntry, setSelectedEntry] = useState<TreeEntryData | null>(
-    null
-  );
+  const [selectedEntry, setSelectedEntry] =
+    useState<educationInfrastructuresEntryData | null>(null);
 
   // Search and pagination states
   const [searchTerm, setSearchTerm] = useState("");
@@ -124,26 +76,29 @@ export default function ConservationPage() {
   useEffect(() => {
     const id = searchParams.get("id");
     if (id) {
-      const entry = treeData.find((item) => item.id === id);
+      const entry = infrastructuresData.find((item) => item.id === id);
       if (entry) {
         setSelectedEntry(entry);
         setIsDetailsModalOpen(true);
       }
     }
-  }, [searchParams, treeData]);
+  }, [searchParams, infrastructuresData]);
 
   // Filter and search data
   const filteredData = useMemo(() => {
-    return treeData.filter((item) => {
+    return infrastructuresData.filter((item) => {
       const matchesSearch =
         searchTerm === "" ||
-        item.treeType.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.schoolName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.infrastructureType
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
         item.description.toLowerCase().includes(searchTerm.toLowerCase());
 
       return matchesSearch;
     });
-  }, [treeData, searchTerm]);
+  }, [infrastructuresData, searchTerm]);
 
   // Paginate data
   const paginatedData = useMemo(() => {
@@ -154,23 +109,25 @@ export default function ConservationPage() {
 
   const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
 
-  const handleCreateEntry = (data: ConservationData) => {
-    const newEntry: TreeEntryData = {
-      ...(data as Omit<TreeEntryData, "id">),
+  const handleCreateEntry = (data: SocioEconomicData) => {
+    const newEntry: educationInfrastructuresEntryData = {
+      ...(data as Omit<educationInfrastructuresEntryData, "id">),
       id: Date.now().toString(),
     };
-    setTreeData((prev) => [...prev, newEntry]);
+    setInfrastructuresData((prev) => [...prev, newEntry]);
     setIsCreateModalOpen(false);
   };
 
-  const handleViewDetails = (entry: TreeEntryData) => {
-    router.push(`/dashboard/conservation?id=${entry.id}`);
+  const handleViewDetails = (entry: educationInfrastructuresEntryData) => {
+    router.push(
+      `/dashboard/socio-economic/education/infrastructures?id=${entry.id}`
+    );
   };
 
   const handleCloseDetails = () => {
     setIsDetailsModalOpen(false);
     setSelectedEntry(null);
-    router.push("/dashboard/conservation");
+    router.push("/dashboard/socio-economic/education/infrastructures");
   };
 
   const handleEdit = () => {
@@ -178,13 +135,13 @@ export default function ConservationPage() {
     setIsUpdateModalOpen(true);
   };
 
-  const handleUpdateEntry = (data: ConservationData) => {
+  const handleUpdateEntry = (data: SocioEconomicData) => {
     if (selectedEntry) {
-      const updatedEntry: TreeEntryData = {
-        ...(data as Omit<TreeEntryData, "id">),
+      const updatedEntry: educationInfrastructuresEntryData = {
+        ...(data as Omit<educationInfrastructuresEntryData, "id">),
         id: selectedEntry.id,
       };
-      setTreeData((prev) =>
+      setInfrastructuresData((prev) =>
         prev.map((item) => (item.id === selectedEntry.id ? updatedEntry : item))
       );
       setIsUpdateModalOpen(false);
@@ -194,14 +151,14 @@ export default function ConservationPage() {
 
   const handleDelete = () => {
     if (selectedEntry) {
-      setTreeData((prev) =>
+      setInfrastructuresData((prev) =>
         prev.filter((entry) => entry.id !== selectedEntry.id)
       );
       setSelectedEntry(null);
     }
     setIsDeleteModalOpen(false);
     setIsDetailsModalOpen(false);
-    router.push("/dashboard/conservation");
+    router.push("/dashboard/socio-economic/education/infrastructures");
   };
 
   const handleDeleteClick = () => {
@@ -222,7 +179,7 @@ export default function ConservationPage() {
     <div className="ml-64">
       <div className="max-w-7xl mx-auto">
         {/* Tabs */}
-        <ConservationTabs />
+        <SocioEconomicTabs />
 
         {/* Main Content */}
         <div className="p-8">
@@ -233,7 +190,7 @@ export default function ConservationPage() {
               className="bg-[#54D12B] text-white hover:bg-[#43b71f]"
             >
               <Plus size={20} className="mr-2" />
-              Add New Tree Entry
+              Add New Entry
             </Button>
           </div>
 
@@ -243,11 +200,10 @@ export default function ConservationPage() {
             onSearchChange={setSearchTerm}
           />
 
-          {/* Tree Planting Table */}
+          {/* Infrastructures Table */}
           {searchTerm.trim() !== "" && filteredData.length === 0 ? (
             <div className="bg-white rounded-lg border border-gray-200 p-8 text-center text-gray-700 mb-6">
-              <span className="font-medium">"{searchTerm}"</span> not
-              found
+              <span className="font-medium">"{searchTerm}"</span> not found
             </div>
           ) : (
             <div className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-6">
@@ -256,13 +212,16 @@ export default function ConservationPage() {
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
                       <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">
-                        Type
+                        School Name
                       </th>
                       <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">
                         Location
                       </th>
                       <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">
-                        Number of Trees
+                        Type
+                      </th>
+                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">
+                        Date Donated
                       </th>
                       <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">
                         Actions
@@ -273,13 +232,18 @@ export default function ConservationPage() {
                     {paginatedData.map((item) => (
                       <tr key={item.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 text-sm text-gray-900">
-                          {item.treeType}
+                          {item.schoolName}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
                           {item.location}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
-                          {item.numberOfTrees.toLocaleString()}
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            {item.infrastructureType}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900">
+                          {item.dateDonated.toLocaleDateString()}
                         </td>
                         <td className="px-6 py-4 text-sm">
                           <div className="flex gap-4">
@@ -319,7 +283,7 @@ export default function ConservationPage() {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSubmit={handleCreateEntry}
-        conservationType="tree"
+        socioEconomicType="educationInfrastructures"
       />
 
       <DetailsModal
@@ -328,7 +292,7 @@ export default function ConservationPage() {
         data={selectedEntry}
         onEdit={handleEdit}
         onDelete={handleDeleteClick}
-        conservationType="tree"
+        socioEconomicType="educationInfrastructures"
       />
 
       <UpdateEntryModal
@@ -336,15 +300,15 @@ export default function ConservationPage() {
         onClose={() => setIsUpdateModalOpen(false)}
         onSubmit={handleUpdateEntry}
         initialData={selectedEntry}
-        conservationType="tree"
+        socioEconomicType="educationInfrastructures"
       />
 
       <DeleteConfirmationModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={handleDelete}
-        conservationType="tree"
-        itemName={selectedEntry?.treeType}
+        socioEconomicType="educationInfrastructures"
+        itemName={selectedEntry?.schoolName}
       />
     </div>
   );

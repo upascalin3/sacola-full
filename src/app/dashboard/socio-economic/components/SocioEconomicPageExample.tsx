@@ -9,28 +9,32 @@ import {
   CardTitle,
   CardAction,
 } from "@/components/ui/card";
-import { ConservationModals } from "./ConservationModals";
-import { useConservationModals } from "./useConservationModals";
-import { ConservationData, ConservationType } from "@/lib/conservation/types";
+import { SocioEconomicModals } from "./SocioEconomicModals";
+import { useSocioEconomicModals } from "./useSocioEconomicModals";
+import {
+  SocioEconomicData,
+  SocioEconomicType,
+  SOCIO_ECONOMIC_CONFIGS,
+} from "@/lib/socio-economic/types";
 import SearchAndFilters from "./SearchAndFilters";
 import Pagination from "./Pagination";
 import { ExternalLink, Download } from "lucide-react";
 
-interface ConservationPageExampleProps {
-  conservationType: ConservationType;
-  entries?: ConservationData[];
-  onCreateEntry?: (data: ConservationData) => Promise<void>;
-  onUpdateEntry?: (data: ConservationData) => Promise<void>;
-  onDeleteEntry?: (data: ConservationData) => Promise<void>;
+interface SocioEconomicPageExampleProps {
+  socioEconomicType: SocioEconomicType;
+  entries?: SocioEconomicData[];
+  onCreateEntry?: (data: SocioEconomicData) => Promise<void>;
+  onUpdateEntry?: (data: SocioEconomicData) => Promise<void>;
+  onDeleteEntry?: (data: SocioEconomicData) => Promise<void>;
 }
 
-export function ConservationPageExample({
-  conservationType,
+export function SocioEconomicPageExample({
+  socioEconomicType,
   entries = [],
   onCreateEntry,
   onUpdateEntry,
   onDeleteEntry,
-}: ConservationPageExampleProps) {
+}: SocioEconomicPageExampleProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
@@ -42,15 +46,15 @@ export function ConservationPageExample({
     openDeleteModal,
     openDetailsModal,
     closeModal,
-  } = useConservationModals();
+  } = useSocioEconomicModals();
 
-  const handleCreateEntry = async (data: ConservationData) => {
+  const handleCreateEntry = async (data: SocioEconomicData) => {
     if (onCreateEntry) {
       await onCreateEntry(data);
     }
   };
 
-  const handleUpdateEntry = async (data: ConservationData) => {
+  const handleUpdateEntry = async (data: SocioEconomicData) => {
     if (onUpdateEntry) {
       await onUpdateEntry(data);
     }
@@ -62,17 +66,11 @@ export function ConservationPageExample({
     }
   };
 
-  // For conservation, we'll show the first 3 fields from the entry
-  const getVisibleFields = (entry: ConservationData) => {
-    const entryData = entry as Record<string, any>;
-    const fields = Object.keys(entryData).filter(
-      (key) =>
-        entryData[key] !== null &&
-        entryData[key] !== undefined &&
-        entryData[key] !== ""
-    );
-    return fields.slice(0, 3);
-  };
+  const config = SOCIO_ECONOMIC_CONFIGS[socioEconomicType];
+  const visibleFields = useMemo(
+    () => config.fields.filter((f) => f.type !== "textarea").slice(0, 3),
+    [config.fields]
+  );
 
   const filteredEntries = useMemo(() => {
     if (!searchTerm.trim()) return entries;
@@ -104,10 +102,10 @@ export function ConservationPageExample({
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">
-            {conservationType}
+            {socioEconomicType}
           </h2>
           <p className="text-gray-600 mt-1">
-            Manage your {conservationType} entries
+            Manage your {socioEconomicType} entries
           </p>
         </div>
         <Button
@@ -140,58 +138,54 @@ export function ConservationPageExample({
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  {filteredEntries.length > 0 &&
-                    getVisibleFields(filteredEntries[0]).map((field) => (
-                      <th
-                        key={field}
-                        className="px-6 py-4 text-left text-sm font-medium text-gray-900"
-                      >
-                        {field.replace(/([A-Z])/g, " $1").trim()}
-                      </th>
-                    ))}
+                  {visibleFields.map((field) => (
+                    <th
+                      key={field.key}
+                      className="px-6 py-4 text-left text-sm font-medium text-gray-900"
+                    >
+                      {field.label}
+                    </th>
+                  ))}
                   <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">
                     Actions
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {paginatedEntries.map((entry, index) => {
-                  const visibleFields = getVisibleFields(entry);
-                  return (
-                    <tr
-                      key={(entry as any).id ?? index}
-                      className="hover:bg-gray-50"
-                    >
-                      {visibleFields.map((field) => {
-                        const raw = (entry as any)[field];
-                        let display: string | number = raw as any;
-                        if (raw instanceof Date)
-                          display = raw.toLocaleDateString();
-                        return (
-                          <td
-                            key={field}
-                            className="px-6 py-4 text-sm text-gray-900"
-                          >
-                            {String(display)}
-                          </td>
-                        );
-                      })}
-                      <td className="px-6 py-4 text-sm">
-                        <div className="flex gap-4">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openDetailsModal(entry)}
-                            className="flex items-center gap-1 text-[#54D12B] hover:text-[#43b71f] p-0 h-auto"
-                          >
-                            <ExternalLink size={14} />
-                            View More
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
+                {paginatedEntries.map((entry, index) => (
+                  <tr
+                    key={(entry as any).id ?? index}
+                    className="hover:bg-gray-50"
+                  >
+                    {visibleFields.map((field) => {
+                      const raw = (entry as any)[field.key];
+                      let display: string | number = raw as any;
+                      if (raw instanceof Date)
+                        display = raw.toLocaleDateString();
+                      return (
+                        <td
+                          key={field.key}
+                          className="px-6 py-4 text-sm text-gray-900"
+                        >
+                          {String(display)}
+                        </td>
+                      );
+                    })}
+                    <td className="px-6 py-4 text-sm">
+                      <div className="flex gap-4">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openDetailsModal(entry)}
+                          className="flex items-center gap-1 text-[#54D12B] hover:text-[#43b71f] p-0 h-auto"
+                        >
+                          <ExternalLink size={14} />
+                          View More
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
@@ -249,11 +243,11 @@ export function ConservationPageExample({
         />
       )}
 
-      <ConservationModals
+      <SocioEconomicModals
         isOpen={modalState.isOpen}
         onClose={closeModal}
         action={modalState.action}
-        conservationType={conservationType}
+        socioEconomicType={socioEconomicType}
         data={modalState.data}
         onSubmit={
           modalState.action === "create" ? handleCreateEntry : handleUpdateEntry
