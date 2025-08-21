@@ -18,13 +18,13 @@ export default function Sidebar() {
   return (
     <aside className="fixed left-0 top-0 h-screen w-64 bg-white px-6 py-8 flex flex-col justify-between z-30 border-r border-gray-100">
       <div>
-        <div className="mb-8 text-xl font-semibold tracking-wide text-gray-900">
+        <div className="mb-8 text-xl font-bold tracking-wide text-gray-900">
           SACOLA
         </div>
         <nav className="flex flex-col gap-1">
           {navItems.map((item) => {
             const Icon = item.icon;
-            // Fixed logic: exact match for /dashboard, startsWith for sub-routes
+            
             const isActive = item.href === "/dashboard" 
               ? pathname === "/dashboard"
               : pathname?.startsWith(item.href);

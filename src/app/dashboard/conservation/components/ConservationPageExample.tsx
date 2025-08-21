@@ -11,10 +11,14 @@ import {
 } from "@/components/ui/card";
 import { ConservationModals } from "./ConservationModals";
 import { useConservationModals } from "./useConservationModals";
-import { ConservationData, ConservationType } from "@/lib/conservation/types";
+import {
+  ConservationData,
+  ConservationType,
+  CONSERVATION_CONFIGS,
+} from "@/lib/conservation/types";
 import SearchAndFilters from "./SearchAndFilters";
 import Pagination from "./Pagination";
-import { ExternalLink, Download } from "lucide-react";
+import { ExternalLink, Plus, Pencil, Trash2 } from "lucide-react";
 
 interface ConservationPageExampleProps {
   conservationType: ConservationType;
@@ -62,11 +66,14 @@ export function ConservationPageExample({
     }
   };
 
+  const config = CONSERVATION_CONFIGS[conservationType];
+
   // For conservation, we'll show the first 3 fields from the entry
   const getVisibleFields = (entry: ConservationData) => {
     const entryData = entry as Record<string, any>;
     const fields = Object.keys(entryData).filter(
       (key) =>
+        key !== "id" &&
         entryData[key] !== null &&
         entryData[key] !== undefined &&
         entryData[key] !== ""
@@ -102,19 +109,12 @@ export function ConservationPageExample({
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">
-            {conservationType}
-          </h2>
-          <p className="text-gray-600 mt-1">
-            Manage your {conservationType} entries
-          </p>
-        </div>
         <Button
           onClick={openCreateModal}
           className="bg-[#54D12B] hover:bg-[#54D12B]/90"
         >
-          Create New Entry
+          <Plus size={20} className="mr-2" />
+          {`Add New ${config.title} Entry`}
         </Button>
       </div>
 
@@ -144,12 +144,12 @@ export function ConservationPageExample({
                     getVisibleFields(filteredEntries[0]).map((field) => (
                       <th
                         key={field}
-                        className="px-6 py-4 text-left text-sm font-medium text-gray-900"
+                        className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase"
                       >
                         {field.replace(/([A-Z])/g, " $1").trim()}
                       </th>
                     ))}
-                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase">
                     Actions
                   </th>
                 </tr>
@@ -179,13 +179,34 @@ export function ConservationPageExample({
                       <td className="px-6 py-4 text-sm">
                         <div className="flex gap-4">
                           <Button
+                            aria-label="View details"
+                            title="View details"
                             variant="ghost"
                             size="sm"
                             onClick={() => openDetailsModal(entry)}
-                            className="flex items-center gap-1 text-[#54D12B] hover:text-[#43b71f] p-0 h-auto"
+                            className="flex items-center text-[#54D12B] hover:text-[#43b71f] p-0 h-auto"
                           >
-                            <ExternalLink size={14} />
-                            View More
+                            <ExternalLink size={16} />
+                          </Button>
+                          <Button
+                            aria-label="Edit entry"
+                            title="Edit entry"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openUpdateModal(entry)}
+                            className="flex items-center text-[#54D12B] hover:text-[#43b71f] p-0 h-auto"
+                          >
+                            <Pencil size={16} />
+                          </Button>
+                          <Button
+                            aria-label="Delete entry"
+                            title="Delete entry"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openDeleteModal(entry)}
+                            className="flex items-center text-red-600 hover:text-red-700 p-0 h-auto"
+                          >
+                            <Trash2 size={16} />
                           </Button>
                         </div>
                       </td>

@@ -10,7 +10,7 @@ const conservationTabs = [
   { label: "Bamboo", href: "/dashboard/conservation/bamboo" },
   { label: "EU-funded Project", href: "/dashboard/conservation/eu-pro" },
   { label: "Buffalo Wall", href: "/dashboard/conservation/buffalo-wall" },
-  { label: "Other", href: "/dashboard/conservation/other" },
+  // { label: "Other", href: "/dashboard/conservation/other" },
 ];
 
 export default function ConservationTabs() {

@@ -18,7 +18,7 @@ import {
 } from "@/lib/socio-economic/types";
 import SearchAndFilters from "./SearchAndFilters";
 import Pagination from "./Pagination";
-import { ExternalLink, Download } from "lucide-react";
+import { ExternalLink, Plus, Pencil, Trash2 } from "lucide-react";
 
 interface SocioEconomicPageExampleProps {
   socioEconomicType: SocioEconomicType;
@@ -67,10 +67,19 @@ export function SocioEconomicPageExample({
   };
 
   const config = SOCIO_ECONOMIC_CONFIGS[socioEconomicType];
-  const visibleFields = useMemo(
-    () => config.fields.filter((f) => f.type !== "textarea").slice(0, 3),
-    [config.fields]
-  );
+
+  // For socio-economic, show first 3 non-empty fields from each entry
+  const getVisibleFields = (entry: SocioEconomicData) => {
+    const entryData = entry as Record<string, any>;
+    const fields = Object.keys(entryData).filter(
+      (key) =>
+        key !== "id" &&
+        entryData[key] !== null &&
+        entryData[key] !== undefined &&
+        entryData[key] !== ""
+    );
+    return fields.slice(0, 3);
+  };
 
   const filteredEntries = useMemo(() => {
     if (!searchTerm.trim()) return entries;
@@ -100,19 +109,12 @@ export function SocioEconomicPageExample({
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">
-            {socioEconomicType}
-          </h2>
-          <p className="text-gray-600 mt-1">
-            Manage your {socioEconomicType} entries
-          </p>
-        </div>
         <Button
           onClick={openCreateModal}
           className="bg-[#54D12B] hover:bg-[#54D12B]/90"
         >
-          Create New Entry
+          <Plus size={20} className="mr-2" />
+          {`Add New ${config.title} Entry`}
         </Button>
       </div>
 
@@ -138,54 +140,79 @@ export function SocioEconomicPageExample({
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  {visibleFields.map((field) => (
-                    <th
-                      key={field.key}
-                      className="px-6 py-4 text-left text-sm font-medium text-gray-900"
-                    >
-                      {field.label}
-                    </th>
-                  ))}
-                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">
+                  {filteredEntries.length > 0 &&
+                    getVisibleFields(filteredEntries[0]).map((field) => (
+                      <th
+                        key={field}
+                        className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase"
+                      >
+                        {field.replace(/([A-Z])/g, " $1").trim()}
+                      </th>
+                    ))}
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase">
                     Actions
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {paginatedEntries.map((entry, index) => (
-                  <tr
-                    key={(entry as any).id ?? index}
-                    className="hover:bg-gray-50"
-                  >
-                    {visibleFields.map((field) => {
-                      const raw = (entry as any)[field.key];
-                      let display: string | number = raw as any;
-                      if (raw instanceof Date)
-                        display = raw.toLocaleDateString();
-                      return (
-                        <td
-                          key={field.key}
-                          className="px-6 py-4 text-sm text-gray-900"
-                        >
-                          {String(display)}
-                        </td>
-                      );
-                    })}
-                    <td className="px-6 py-4 text-sm">
-                      <div className="flex gap-4">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openDetailsModal(entry)}
-                          className="flex items-center gap-1 text-[#54D12B] hover:text-[#43b71f] p-0 h-auto"
-                        >
-                          <ExternalLink size={14} />
-                          View More
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {paginatedEntries.map((entry, index) => {
+                  const visibleFields = getVisibleFields(entry);
+                  return (
+                    <tr
+                      key={(entry as any).id ?? index}
+                      className="hover:bg-gray-50"
+                    >
+                      {visibleFields.map((field) => {
+                        const raw = (entry as any)[field];
+                        let display: string | number = raw as any;
+                        if (raw instanceof Date)
+                          display = raw.toLocaleDateString();
+                        return (
+                          <td
+                            key={field}
+                            className="px-6 py-4 text-sm text-gray-900"
+                          >
+                            {String(display)}
+                          </td>
+                        );
+                      })}
+                      <td className="px-6 py-4 text-sm">
+                        <div className="flex gap-4">
+                          <Button
+                            aria-label="View details"
+                            title="View details"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openDetailsModal(entry)}
+                            className="flex items-center text-[#54D12B] hover:text-[#43b71f] p-0 h-auto"
+                          >
+                            <ExternalLink size={16} />
+                          </Button>
+                          <Button
+                            aria-label="Edit entry"
+                            title="Edit entry"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openUpdateModal(entry)}
+                            className="flex items-center text-[#54D12B] hover:text-[#43b71f] p-0 h-auto"
+                          >
+                            <Pencil size={16} />
+                          </Button>
+                          <Button
+                            aria-label="Delete entry"
+                            title="Delete entry"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openDeleteModal(entry)}
+                            className="flex items-center text-red-600 hover:text-red-700 p-0 h-auto"
+                          >
+                            <Trash2 size={16} />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

@@ -15,7 +15,7 @@ const socioEconomicTabs = [
   { label: "Parking", href: "/dashboard/socio-economic/parking" },
   { label: "Water Pumps", href: "/dashboard/socio-economic/water-pumps" },
   { label: "Offices", href: "/dashboard/socio-economic/offices" },
-  { label: "Other", href: "/dashboard/socio-economic/other" },
+  // { label: "Other", href: "/dashboard/socio-economic/other" },
 ];
 
 export default function SocioEconomicTabs() {
