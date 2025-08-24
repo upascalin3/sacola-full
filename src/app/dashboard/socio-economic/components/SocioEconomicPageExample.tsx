@@ -18,7 +18,14 @@ import {
 } from "@/lib/socio-economic/types";
 import SearchAndFilters from "./SearchAndFilters";
 import Pagination from "./Pagination";
-import { ExternalLink, Plus, Pencil, Trash2 } from "lucide-react";
+import {
+  ExternalLink,
+  Plus,
+  Pencil,
+  Trash2,
+  Archive as ArchiveIcon,
+  ArchiveX,
+} from "lucide-react";
 
 interface SocioEconomicPageExampleProps {
   socioEconomicType: SocioEconomicType;
@@ -26,6 +33,13 @@ interface SocioEconomicPageExampleProps {
   onCreateEntry?: (data: SocioEconomicData) => Promise<void>;
   onUpdateEntry?: (data: SocioEconomicData) => Promise<void>;
   onDeleteEntry?: (data: SocioEconomicData) => Promise<void>;
+  showAddButton?: boolean;
+  enableEdit?: boolean;
+  enableDelete?: boolean;
+  showArchive?: boolean;
+  showUnarchive?: boolean;
+  onArchiveEntry?: (data: SocioEconomicData) => Promise<void> | void;
+  onUnarchiveEntry?: (data: SocioEconomicData) => Promise<void> | void;
 }
 
 export function SocioEconomicPageExample({
@@ -34,6 +48,13 @@ export function SocioEconomicPageExample({
   onCreateEntry,
   onUpdateEntry,
   onDeleteEntry,
+  showAddButton = true,
+  enableEdit = true,
+  enableDelete = true,
+  showArchive = false,
+  showUnarchive = false,
+  onArchiveEntry,
+  onUnarchiveEntry,
 }: SocioEconomicPageExampleProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -109,13 +130,15 @@ export function SocioEconomicPageExample({
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <Button
-          onClick={openCreateModal}
-          className="bg-[#54D12B] hover:bg-[#54D12B]/90"
-        >
-          <Plus size={20} className="mr-2" />
-          {`Add New ${config.title} Entry`}
-        </Button>
+        {showAddButton && (
+          <Button
+            onClick={openCreateModal}
+            className="bg-[#54D12B] hover:bg-[#54D12B]/90"
+          >
+            <Plus size={20} className="mr-2" />
+            {`Add New ${config.title} Entry`}
+          </Button>
+        )}
       </div>
 
       {/* Search */}
@@ -188,26 +211,54 @@ export function SocioEconomicPageExample({
                           >
                             <ExternalLink size={16} />
                           </Button>
-                          <Button
-                            aria-label="Edit entry"
-                            title="Edit entry"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openUpdateModal(entry)}
-                            className="flex items-center text-[#54D12B] hover:text-[#43b71f] p-0 h-auto"
-                          >
-                            <Pencil size={16} />
-                          </Button>
-                          <Button
-                            aria-label="Delete entry"
-                            title="Delete entry"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openDeleteModal(entry)}
-                            className="flex items-center text-red-600 hover:text-red-700 p-0 h-auto"
-                          >
-                            <Trash2 size={16} />
-                          </Button>
+                          {enableEdit && (
+                            <Button
+                              aria-label="Edit entry"
+                              title="Edit entry"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openUpdateModal(entry)}
+                              className="flex items-center text-[#54D12B] hover:text-[#43b71f] p-0 h-auto"
+                            >
+                              <Pencil size={16} />
+                            </Button>
+                          )}
+                          {enableDelete && (
+                            <Button
+                              aria-label="Delete entry"
+                              title="Delete entry"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openDeleteModal(entry)}
+                              className="flex items-center text-red-600 hover:text-red-700 p-0 h-auto"
+                            >
+                              <Trash2 size={16} />
+                            </Button>
+                          )}
+                          {showArchive && onArchiveEntry && (
+                            <Button
+                              aria-label="Archive entry"
+                              title="Archive entry"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => onArchiveEntry?.(entry)}
+                              className="flex items-center text-amber-600 hover:text-amber-700 p-0 h-auto"
+                            >
+                              <ArchiveIcon size={16} />
+                            </Button>
+                          )}
+                          {showUnarchive && onUnarchiveEntry && (
+                            <Button
+                              aria-label="Unarchive entry"
+                              title="Unarchive entry"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => onUnarchiveEntry?.(entry)}
+                              className="flex items-center text-amber-600 hover:text-amber-700 p-0 h-auto"
+                            >
+                              <ArchiveX size={16} />
+                            </Button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -244,12 +295,14 @@ export function SocioEconomicPageExample({
                   Get started by creating your first entry.
                 </p>
               </div>
-              <Button
-                onClick={openCreateModal}
-                className="bg-[#54D12B] hover:bg-[#54D12B]/90"
-              >
-                Create First Entry
-              </Button>
+              {showAddButton && (
+                <Button
+                  onClick={openCreateModal}
+                  className="bg-[#54D12B] hover:bg-[#54D12B]/90"
+                >
+                  Create First Entry
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
