@@ -68,7 +68,7 @@ export function ConservationPageExample({
 
   const config = CONSERVATION_CONFIGS[conservationType];
 
-  // For conservation, we'll show the first 3 fields from the entry
+  // show the first 3 fields from the entry
   const getVisibleFields = (entry: ConservationData) => {
     const entryData = entry as Record<string, any>;
     const fields = Object.keys(entryData).filter(

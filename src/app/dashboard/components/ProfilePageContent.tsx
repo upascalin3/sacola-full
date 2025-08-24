@@ -31,7 +31,7 @@ export default function ProfilePageContent() {
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
-  // Example user data (replace with real data from API or context)
+  // Example user data 
   const [user, setUser] = useState({
     name: "John Doe",
     email: "john.doe@example.com",
