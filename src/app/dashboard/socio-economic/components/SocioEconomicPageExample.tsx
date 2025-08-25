@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -25,7 +25,10 @@ import {
   Trash2,
   Archive as ArchiveIcon,
   ArchiveX,
+  Download,
 } from "lucide-react";
+import { downloadCsvFromObjects } from "@/lib/utils";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 interface SocioEconomicPageExampleProps {
   socioEconomicType: SocioEconomicType;
@@ -59,6 +62,9 @@ export function SocioEconomicPageExample({
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const {
     modalState,
@@ -127,6 +133,52 @@ export function SocioEconomicPageExample({
     Math.ceil(filteredEntries.length / itemsPerPage)
   );
 
+  const handleExportCsv = () => {
+    const filename = `${config.title
+      .toLowerCase()
+      .replace(/\s+/g, "-")}-entries.csv`;
+    const rows = filteredEntries.map(
+      (e) => e as unknown as Record<string, unknown>
+    );
+    downloadCsvFromObjects(filename, rows);
+  };
+
+  // Sync details modal with URL ?id=
+  useEffect(() => {
+    const idFromUrl = searchParams.get("id");
+    if (!idFromUrl) return;
+    const found = entries.find((e) => String((e as any).id) === idFromUrl);
+    if (found) {
+      if (
+        modalState.action !== "details" ||
+        (modalState.data as any)?.id !== (found as any).id
+      ) {
+        openDetailsModal(found);
+      }
+    }
+  }, [
+    searchParams,
+    entries,
+    modalState.action,
+    modalState.data,
+    openDetailsModal,
+  ]);
+
+  const handleOpenDetails = (entry: SocioEconomicData) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("id", String((entry as any).id));
+    router.replace(`${pathname}?${params.toString()}`);
+    openDetailsModal(entry);
+  };
+
+  const handleCloseModal = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("id");
+    const next = params.toString();
+    router.replace(next ? `${pathname}?${next}` : pathname);
+    closeModal();
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -137,6 +189,17 @@ export function SocioEconomicPageExample({
           >
             <Plus size={20} className="mr-2" />
             {`Add New ${config.title} Entry`}
+          </Button>
+        )}
+        {filteredEntries.length > 0 && (
+          <Button
+            onClick={handleExportCsv}
+            variant="outline"
+            className="text-[#54D12B] border-[#54D12B] hover:bg-[#54D12B]/5"
+            title="Export CSV"
+          >
+            <Download size={18} className="mr-2" />
+            Export CSV
           </Button>
         )}
       </div>
@@ -206,7 +269,7 @@ export function SocioEconomicPageExample({
                             title="View details"
                             variant="ghost"
                             size="sm"
-                            onClick={() => openDetailsModal(entry)}
+                            onClick={() => handleOpenDetails(entry)}
                             className="flex items-center text-[#54D12B] hover:text-[#43b71f] p-0 h-auto"
                           >
                             <ExternalLink size={16} />
@@ -325,7 +388,7 @@ export function SocioEconomicPageExample({
 
       <SocioEconomicModals
         isOpen={modalState.isOpen}
-        onClose={closeModal}
+        onClose={handleCloseModal}
         action={modalState.action}
         socioEconomicType={socioEconomicType}
         data={modalState.data}

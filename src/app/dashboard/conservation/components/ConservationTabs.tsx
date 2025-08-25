@@ -27,27 +27,29 @@ export default function ConservationTabs() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-12 border-b border-gray-200">
-          {conservationTabs.map((tab) => {
-            const isActive = pathname === tab.href;
+        <div className="border-b border-gray-200 overflow-x-auto overflow-y-hidden no-scrollbar">
+          <div className="flex gap-12 whitespace-nowrap">
+            {conservationTabs.map((tab) => {
+              const isActive = pathname === tab.href;
 
-            return (
-              <Link
-                key={tab.href}
-                href={tab.href}
-                className={`pb-4 px-1 font-medium text-sm transition-colors relative ${
-                  isActive
-                    ? "text-[#54D12B]"
-                    : "text-gray-600 hover:text-gray-900"
-                }`}
-              >
-                {tab.label}
-                {isActive && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#54D12B]"></div>
-                )}
-              </Link>
-            );
-          })}
+              return (
+                <Link
+                  key={tab.href}
+                  href={tab.href}
+                  className={`pb-4 px-1 font-medium text-sm transition-colors relative ${
+                    isActive
+                      ? "text-[#54D12B]"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  {tab.label}
+                  {isActive && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#54D12B]"></div>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>

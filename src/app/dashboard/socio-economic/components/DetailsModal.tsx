@@ -38,8 +38,14 @@ export default function DetailsModal({
     : config.title;
 
   return (
-    <div className="fixed inset-0 bg-[#000000]/30 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-8 w-full max-w-4xl">
+    <div
+      className="fixed inset-0 bg-[#000000]/30 flex items-center justify-center z-[10000]"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-lg p-8 w-full max-w-4xl max-h-[80vh] overflow-y-auto no-scrollbar"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-[#54D12B]">{titleValue}</h2>
           <Button
