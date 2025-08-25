@@ -2,29 +2,13 @@ import Sidebar from "@/components/Sidebar";
 import { Card } from "@/components/ui/card";
 import React from "react";
 import Link from "next/link";
-import ProgressCharts from "./components/ProgressCharts";
 import { Clock, CheckCircle, AlertCircle, FileText } from "lucide-react";
 
 export const metadata = {
   title: "Dashboard | SACOLA",
 };
 
-const conservationData = [
-  { year: "2021", value: 40 },
-  { year: "2022", value: 48 },
-  { year: "2023", value: 32 },
-  { year: "2024", value: 56 },
-  { year: "2025", value: 44 }, // current year
-];
-const conservationActive = 4; // index of the active bar (current year)
-const socioEconomicData = [
-  { year: "2021", value: 36 },
-  { year: "2022", value: 44 },
-  { year: "2023", value: 28 },
-  { year: "2024", value: 40 },
-  { year: "2025", value: 52 }, // current year
-];
-const socioEconomicActive = 4;
+
 
 const recentActivities = [
   {
@@ -67,13 +51,13 @@ export default function DashboardPage() {
             <span className="text-gray-700 text-base mb-2">
               Conservation Activities
             </span>
-            <span className="text-3xl font-bold text-gray-900">8</span>
+            <span className="text-3xl font-bold text-gray-900">5</span>
           </Card>
           <Card className="p-6 flex flex-col justify-center items-start">
             <span className="text-gray-700 text-base mb-2">
               Socio-Economic Activities
             </span>
-            <span className="text-3xl font-bold text-gray-900">12</span>
+            <span className="text-3xl font-bold text-gray-900">10</span>
           </Card>
         </div>
       </section>
@@ -140,18 +124,6 @@ export default function DashboardPage() {
           </ul>
         </Card>
       </div>
-      <section>
-        <h2 className="text-xl font-semibold mb-8 flex items-center">
-          <div className="w-2 h-8 bg-[#54D12B] rounded-full mr-3"></div>
-          Progress Overview
-        </h2>
-        <ProgressCharts
-          conservationData={conservationData}
-          conservationActive={conservationActive}
-          socioEconomicData={socioEconomicData}
-          socioEconomicActive={socioEconomicActive}
-        />
-      </section>
     </main>
   );
 }
