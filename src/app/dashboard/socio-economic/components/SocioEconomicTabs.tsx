@@ -124,7 +124,7 @@ export default function SocioEconomicTabs() {
       ref={(el) => {
         dropdownRefs.current[name] = el;
       }}
-      className={`absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg py-2 min-w-[240px] z-[10000] transition-all duration-300 ease-out ${
+      className={`absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg py-2 min-w-[240px] z-[20000] transition-all duration-300 ease-out ${
         openDropdown === name
           ? "opacity-100 visible translate-y-0"
           : "opacity-0 invisible -translate-y-1 pointer-events-none"
@@ -177,205 +177,203 @@ export default function SocioEconomicTabs() {
         </div>
 
         <div className="relative">
-          <div className="border-b border-gray-200 overflow-x-auto overflow-y-hidden no-scrollbar">
-            <div className="flex whitespace-nowrap gap-6">
-              <Link
-                href="/dashboard/socio-economic"
-                className={`pb-4 px-4 font-medium text-sm transition-all duration-200 relative flex-shrink-0 rounded-md focus:outline-none focus:ring-2 focus:ring-[#54D12B] focus:ring-offset-2 ${
-                  isActive("/dashboard/socio-economic")
-                    ? "text-[#54D12B]"
-                    : "text-gray-600 hover:text-black"
-                }`}
-              >
-                Livestock
-                {isActive("/dashboard/socio-economic") && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#54D12B]"></div>
-                )}
-              </Link>
+          <div className="flex whitespace-nowrap gap-6 border-b border-gray-200 overflow-visible">
+            <Link
+              href="/dashboard/socio-economic"
+              className={`pb-4 px-4 font-medium text-sm transition-all duration-200 relative flex-shrink-0 rounded-md focus:outline-none focus:ring-2 focus:ring-[#54D12B] focus:ring-offset-2 ${
+                isActive("/dashboard/socio-economic")
+                  ? "text-[#54D12B]"
+                  : "text-gray-600 hover:text-black"
+              }`}
+            >
+              Livestock
+              {isActive("/dashboard/socio-economic") && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#54D12B]"></div>
+              )}
+            </Link>
 
-              <div className="relative">
-                <DropdownButton
-                  name="housing"
-                  section="/dashboard/socio-economic/housing"
+            <div className="relative">
+              <DropdownButton
+                name="housing"
+                section="/dashboard/socio-economic/housing"
+              >
+                Housing
+              </DropdownButton>
+              <DropdownMenu name="housing">
+                <DropdownLink
+                  href="/dashboard/socio-economic/housing/materials"
+                  onClick={closeDropdown}
                 >
-                  Housing
-                </DropdownButton>
-                <DropdownMenu name="housing">
-                  <DropdownLink
-                    href="/dashboard/socio-economic/housing/materials"
-                    onClick={closeDropdown}
-                  >
-                    Materials
-                  </DropdownLink>
-                  <DropdownLink
-                    href="/dashboard/socio-economic/housing/houses"
-                    onClick={closeDropdown}
-                  >
-                    Houses
-                  </DropdownLink>
-                  <DropdownLink
-                    href="/dashboard/socio-economic/housing/repairments"
-                    onClick={closeDropdown}
-                  >
-                    Repairments
-                  </DropdownLink>
-                  <DropdownLink
-                    href="/dashboard/socio-economic/housing/villages"
-                    onClick={closeDropdown}
-                  >
-                    Villages
-                  </DropdownLink>
-                  <DropdownLink
-                    href="/dashboard/socio-economic/housing/toilets"
-                    onClick={closeDropdown}
-                  >
-                    Toilets
-                  </DropdownLink>
-                </DropdownMenu>
-              </div>
-
-              <div className="relative">
-                <DropdownButton
-                  name="empowerment"
-                  section="/dashboard/socio-economic/empowerment"
+                  Materials
+                </DropdownLink>
+                <DropdownLink
+                  href="/dashboard/socio-economic/housing/houses"
+                  onClick={closeDropdown}
                 >
-                  Empowerment
-                </DropdownButton>
-                <DropdownMenu name="empowerment">
-                  <DropdownLink
-                    href="/dashboard/socio-economic/empowerment/micro-finance"
-                    onClick={closeDropdown}
-                  >
-                    Micro-Finance
-                  </DropdownLink>
-                  <DropdownLink
-                    href="/dashboard/socio-economic/empowerment/tailoring"
-                    onClick={closeDropdown}
-                  >
-                    Tailoring
-                  </DropdownLink>
-                </DropdownMenu>
-              </div>
-
-              <div className="relative">
-                <DropdownButton
-                  name="education"
-                  section="/dashboard/socio-economic/education"
+                  Houses
+                </DropdownLink>
+                <DropdownLink
+                  href="/dashboard/socio-economic/housing/repairments"
+                  onClick={closeDropdown}
                 >
-                  Education
-                </DropdownButton>
-                <DropdownMenu name="education">
-                  <DropdownLink
-                    href="/dashboard/socio-economic/education/materials"
-                    onClick={closeDropdown}
-                  >
-                    Materials
-                  </DropdownLink>
-                  <DropdownLink
-                    href="/dashboard/socio-economic/education/infrastructures"
-                    onClick={closeDropdown}
-                  >
-                    Infrastructures
-                  </DropdownLink>
-                  <DropdownLink
-                    href="/dashboard/socio-economic/education/students"
-                    onClick={closeDropdown}
-                  >
-                    Supported Students
-                  </DropdownLink>
-                  <DropdownLink
-                    href="/dashboard/socio-economic/education/students/archived"
-                    onClick={closeDropdown}
-                  >
-                    Archived Students
-                  </DropdownLink>
-                </DropdownMenu>
-              </div>
-
-              <Link
-                href="/dashboard/socio-economic/health-centres"
-                className={`pb-4 px-4 font-medium text-sm transition-all duration-200 relative flex-shrink-0 rounded-md focus:outline-none focus:ring-2 focus:ring-[#54D12B] focus:ring-offset-2 ${
-                  isActive("/dashboard/socio-economic/health-centres")
-                    ? "text-[#54D12B]"
-                    : "text-gray-600 hover:text-black"
-                }`}
-              >
-                Health Centres
-                {isActive("/dashboard/socio-economic/health-centres") && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#54D12B]"></div>
-                )}
-              </Link>
-
-              <Link
-                href="/dashboard/socio-economic/it-centre"
-                className={`pb-4 px-4 font-medium text-sm transition-all duration-200 relative flex-shrink-0 rounded-md focus:outline-none focus:ring-2 focus:ring-[#54D12B] focus:ring-offset-2 ${
-                  isActive("/dashboard/socio-economic/it-centre")
-                    ? "text-[#54D12B]"
-                    : "text-gray-600 hover:text-black"
-                }`}
-              >
-                IT Centre
-                {isActive("/dashboard/socio-economic/it-centre") && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#54D12B]"></div>
-                )}
-              </Link>
-
-              <Link
-                href="/dashboard/socio-economic/sports"
-                className={`pb-4 px-4 font-medium text-sm transition-all duration-200 relative flex-shrink-0 rounded-md focus:outline-none focus:ring-2 focus:ring-[#54D12B] focus:ring-offset-2 ${
-                  isActive("/dashboard/socio-economic/sports")
-                    ? "text-[#54D12B]"
-                    : "text-gray-600 hover:text-black"
-                }`}
-              >
-                Sports
-                {isActive("/dashboard/socio-economic/sports") && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#54D12B]"></div>
-                )}
-              </Link>
-
-              <Link
-                href="/dashboard/socio-economic/parking"
-                className={`pb-4 px-4 font-medium text-sm transition-all duration-200 relative flex-shrink-0 rounded-md focus:outline-none focus:ring-2 focus:ring-[#54D12B] focus:ring-offset-2 ${
-                  isActive("/dashboard/socio-economic/parking")
-                    ? "text-[#54D12B]"
-                    : "text-gray-600 hover:text-black"
-                }`}
-              >
-                Parking
-                {isActive("/dashboard/socio-economic/parking") && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#54D12B]"></div>
-                )}
-              </Link>
-
-              <Link
-                href="/dashboard/socio-economic/water-pumps"
-                className={`pb-4 px-4 font-medium text-sm transition-all duration-200 relative flex-shrink-0 rounded-md focus:outline-none focus:ring-2 focus:ring-[#54D12B] focus:ring-offset-2 ${
-                  isActive("/dashboard/socio-economic/water-pumps")
-                    ? "text-[#54D12B]"
-                    : "text-gray-600 hover:text-black"
-                }`}
-              >
-                Water Pumps
-                {isActive("/dashboard/socio-economic/water-pumps") && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#54D12B]"></div>
-                )}
-              </Link>
-
-              <Link
-                href="/dashboard/socio-economic/offices"
-                className={`pb-4 px-4 font-medium text-sm transition-all duration-200 relative flex-shrink-0 rounded-md focus:outline-none focus:ring-2 focus:ring-[#54D12B] focus:ring-offset-2 ${
-                  isActive("/dashboard/socio-economic/offices")
-                    ? "text-[#54D12B]"
-                    : "text-gray-600 hover:text-black"
-                }`}
-              >
-                Offices
-                {isActive("/dashboard/socio-economic/offices") && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#54D12B]"></div>
-                )}
-              </Link>
+                  Repairments
+                </DropdownLink>
+                <DropdownLink
+                  href="/dashboard/socio-economic/housing/villages"
+                  onClick={closeDropdown}
+                >
+                  Villages
+                </DropdownLink>
+                <DropdownLink
+                  href="/dashboard/socio-economic/housing/toilets"
+                  onClick={closeDropdown}
+                >
+                  Toilets
+                </DropdownLink>
+              </DropdownMenu>
             </div>
+
+            <div className="relative">
+              <DropdownButton
+                name="empowerment"
+                section="/dashboard/socio-economic/empowerment"
+              >
+                Empowerment
+              </DropdownButton>
+              <DropdownMenu name="empowerment">
+                <DropdownLink
+                  href="/dashboard/socio-economic/empowerment/micro-finance"
+                  onClick={closeDropdown}
+                >
+                  Micro-Finance
+                </DropdownLink>
+                <DropdownLink
+                  href="/dashboard/socio-economic/empowerment/tailoring"
+                  onClick={closeDropdown}
+                >
+                  Tailoring
+                </DropdownLink>
+              </DropdownMenu>
+            </div>
+
+            <div className="relative">
+              <DropdownButton
+                name="education"
+                section="/dashboard/socio-economic/education"
+              >
+                Education
+              </DropdownButton>
+              <DropdownMenu name="education">
+                <DropdownLink
+                  href="/dashboard/socio-economic/education/materials"
+                  onClick={closeDropdown}
+                >
+                  Materials
+                </DropdownLink>
+                <DropdownLink
+                  href="/dashboard/socio-economic/education/infrastructures"
+                  onClick={closeDropdown}
+                >
+                  Infrastructures
+                </DropdownLink>
+                <DropdownLink
+                  href="/dashboard/socio-economic/education/students"
+                  onClick={closeDropdown}
+                >
+                  Supported Students
+                </DropdownLink>
+                <DropdownLink
+                  href="/dashboard/socio-economic/education/students/archived"
+                  onClick={closeDropdown}
+                >
+                  Archived Students
+                </DropdownLink>
+              </DropdownMenu>
+            </div>
+
+            <Link
+              href="/dashboard/socio-economic/health-centres"
+              className={`pb-4 px-4 font-medium text-sm transition-all duration-200 relative flex-shrink-0 rounded-md focus:outline-none focus:ring-2 focus:ring-[#54D12B] focus:ring-offset-2 ${
+                isActive("/dashboard/socio-economic/health-centres")
+                  ? "text-[#54D12B]"
+                  : "text-gray-600 hover:text-black"
+              }`}
+            >
+              Health Centres
+              {isActive("/dashboard/socio-economic/health-centres") && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#54D12B]"></div>
+              )}
+            </Link>
+
+            <Link
+              href="/dashboard/socio-economic/it-centre"
+              className={`pb-4 px-4 font-medium text-sm transition-all duration-200 relative flex-shrink-0 rounded-md focus:outline-none focus:ring-2 focus:ring-[#54D12B] focus:ring-offset-2 ${
+                isActive("/dashboard/socio-economic/it-centre")
+                  ? "text-[#54D12B]"
+                  : "text-gray-600 hover:text-black"
+              }`}
+            >
+              IT Centre
+              {isActive("/dashboard/socio-economic/it-centre") && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#54D12B]"></div>
+              )}
+            </Link>
+
+            <Link
+              href="/dashboard/socio-economic/sports"
+              className={`pb-4 px-4 font-medium text-sm transition-all duration-200 relative flex-shrink-0 rounded-md focus:outline-none focus:ring-2 focus:ring-[#54D12B] focus:ring-offset-2 ${
+                isActive("/dashboard/socio-economic/sports")
+                  ? "text-[#54D12B]"
+                  : "text-gray-600 hover:text-black"
+              }`}
+            >
+              Sports
+              {isActive("/dashboard/socio-economic/sports") && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#54D12B]"></div>
+              )}
+            </Link>
+
+            <Link
+              href="/dashboard/socio-economic/parking"
+              className={`pb-4 px-4 font-medium text-sm transition-all duration-200 relative flex-shrink-0 rounded-md focus:outline-none focus:ring-2 focus:ring-[#54D12B] focus:ring-offset-2 ${
+                isActive("/dashboard/socio-economic/parking")
+                  ? "text-[#54D12B]"
+                  : "text-gray-600 hover:text-black"
+              }`}
+            >
+              Parking
+              {isActive("/dashboard/socio-economic/parking") && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#54D12B]"></div>
+              )}
+            </Link>
+
+            <Link
+              href="/dashboard/socio-economic/water-pumps"
+              className={`pb-4 px-4 font-medium text-sm transition-all duration-200 relative flex-shrink-0 rounded-md focus:outline-none focus:ring-2 focus:ring-[#54D12B] focus:ring-offset-2 ${
+                isActive("/dashboard/socio-economic/water-pumps")
+                  ? "text-[#54D12B]"
+                  : "text-gray-600 hover:text-black"
+              }`}
+            >
+              Water Pumps
+              {isActive("/dashboard/socio-economic/water-pumps") && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#54D12B]"></div>
+              )}
+            </Link>
+
+            <Link
+              href="/dashboard/socio-economic/offices"
+              className={`pb-4 px-4 font-medium text-sm transition-all duration-200 relative flex-shrink-0 rounded-md focus:outline-none focus:ring-2 focus:ring-[#54D12B] focus:ring-offset-2 ${
+                isActive("/dashboard/socio-economic/offices")
+                  ? "text-[#54D12B]"
+                  : "text-gray-600 hover:text-black"
+              }`}
+            >
+              Offices
+              {isActive("/dashboard/socio-economic/offices") && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#54D12B]"></div>
+              )}
+            </Link>
           </div>
         </div>
       </div>

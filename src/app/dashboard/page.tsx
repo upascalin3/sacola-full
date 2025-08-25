@@ -1,43 +1,54 @@
+"use client";
+
 import Sidebar from "@/components/Sidebar";
 import { Card } from "@/components/ui/card";
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Clock, CheckCircle, AlertCircle, FileText } from "lucide-react";
+import {
+  ActivityItem,
+  getRecentActivities,
+  subscribeToActivityUpdates,
+} from "@/lib/activity";
 
-export const metadata = {
-  title: "Dashboard | SACOLA",
+const iconFor = (icon: string) => {
+  switch (icon) {
+    case "success":
+      return <CheckCircle className="text-[#54D12B] w-6 h-6" />;
+    case "edit":
+      return <FileText className="text-blue-500 w-6 h-6" />;
+    case "delete":
+      return <AlertCircle className="text-red-500 w-6 h-6" />;
+    case "warning":
+      return <AlertCircle className="text-yellow-500 w-6 h-6" />;
+    case "report":
+      return <FileText className="text-blue-500 w-6 h-6" />;
+    default:
+      return <FileText className="text-gray-400 w-6 h-6" />;
+  }
 };
 
-
-
-const recentActivities = [
-  {
-    icon: <CheckCircle className="text-[#54D12B] w-6 h-6" />,
-    title: "Conservation Activity Added",
-    description: "New tree planting event was added to Conservation.",
-    time: "2 hours ago",
-  },
-  {
-    icon: <FileText className="text-blue-500 w-6 h-6" />,
-    title: "Report Submitted",
-    description: "Monthly socio-economic report submitted.",
-    time: "5 hours ago",
-  },
-  {
-    icon: <AlertCircle className="text-yellow-500 w-6 h-6" />,
-    title: "Profile Updated",
-    description: "User profile information was updated.",
-    time: "1 day ago",
-  },
-  {
-    icon: <CheckCircle className="text-[#54D12B] w-6 h-6" />,
-    title: "Socio-Economic Activity Added",
-    description: "New training session added to Socio-Economic.",
-    time: "2 days ago",
-  },
-];
-
 export default function DashboardPage() {
+  const [activities, setActivities] = useState<ActivityItem[]>([]);
+
+  useEffect(() => {
+    setActivities(getRecentActivities());
+    const unsubscribe = subscribeToActivityUpdates(() => {
+      setActivities(getRecentActivities());
+    });
+    return unsubscribe;
+  }, []);
+
+  const timeAgo = (ts: number) => {
+    const diff = Date.now() - ts;
+    const minutes = Math.floor(diff / 60000);
+    if (minutes < 1) return "just now";
+    if (minutes < 60) return `${minutes} min ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+    const days = Math.floor(hours / 24);
+    return `${days} day${days > 1 ? "s" : ""} ago`;
+  };
   return (
     <main className="ml-64 py-7 px-10">
       <h1 className="text-3xl font-bold mb-6 text-gray-900">Welcome Back 👋</h1>
@@ -100,28 +111,34 @@ export default function DashboardPage() {
           Recent Activity
         </h2>
         <Card className="p-6">
-          <ul className="divide-y divide-gray-100">
-            {recentActivities.slice(0, 4).map((activity, idx) => (
-              <li
-                key={idx}
-                className="flex items-start gap-4 py-4 first:pt-0 last:pb-0"
-              >
-                <div className="flex-shrink-0">{activity.icon}</div>
-                <div className="flex-1">
-                  <div className="font-semibold text-gray-900">
-                    {activity.title}
+          {activities.length === 0 ? (
+            <div className="text-center text-gray-500 py-8">
+              No recent activity so far
+            </div>
+          ) : (
+            <ul className="divide-y divide-gray-100">
+              {activities.slice(0, 4).map((activity, idx) => (
+                <li
+                  key={idx}
+                  className="flex items-start gap-4 py-4 first:pt-0 last:pb-0"
+                >
+                  <div className="flex-shrink-0">{iconFor(activity.icon)}</div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-gray-900">
+                      {activity.title}
+                    </div>
+                    <div className="text-gray-600 text-sm">
+                      {activity.description}
+                    </div>
                   </div>
-                  <div className="text-gray-600 text-sm">
-                    {activity.description}
+                  <div className="flex items-center text-xs text-gray-400 gap-1">
+                    <Clock className="w-4 h-4" />
+                    {timeAgo(activity.timestamp)}
                   </div>
-                </div>
-                <div className="flex items-center text-xs text-gray-400 gap-1">
-                  <Clock className="w-4 h-4" />
-                  {activity.time}
-                </div>
-              </li>
-            ))}
-          </ul>
+                </li>
+              ))}
+            </ul>
+          )}
         </Card>
       </div>
     </main>

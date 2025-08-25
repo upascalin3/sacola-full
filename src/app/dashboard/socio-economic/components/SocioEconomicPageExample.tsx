@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { downloadCsvFromObjects } from "@/lib/utils";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { addActivity } from "@/lib/activity";
 
 interface SocioEconomicPageExampleProps {
   socioEconomicType: SocioEconomicType;
@@ -78,18 +79,33 @@ export function SocioEconomicPageExample({
   const handleCreateEntry = async (data: SocioEconomicData) => {
     if (onCreateEntry) {
       await onCreateEntry(data);
+      addActivity({
+        icon: "success",
+        title: `New ${config.title} entry created`,
+        description: `${config.title} item added`,
+      });
     }
   };
 
   const handleUpdateEntry = async (data: SocioEconomicData) => {
     if (onUpdateEntry) {
       await onUpdateEntry(data);
+      addActivity({
+        icon: "edit",
+        title: `${config.title} entry updated`,
+        description: `Entry ${(data as any).id ?? ""} updated`,
+      });
     }
   };
 
   const handleDeleteEntry = async () => {
     if (onDeleteEntry && modalState.data) {
       await onDeleteEntry(modalState.data);
+      addActivity({
+        icon: "delete",
+        title: `${config.title} entry deleted`,
+        description: `Entry ${(modalState.data as any).id ?? ""} deleted`,
+      });
     }
   };
 

@@ -20,6 +20,7 @@ import SearchAndFilters from "./SearchAndFilters";
 import Pagination from "./Pagination";
 import { ExternalLink, Plus, Pencil, Trash2, Download } from "lucide-react";
 import { downloadCsvFromObjects } from "@/lib/utils";
+import { addActivity } from "@/lib/activity";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 interface ConservationPageExampleProps {
@@ -56,18 +57,33 @@ export function ConservationPageExample({
   const handleCreateEntry = async (data: ConservationData) => {
     if (onCreateEntry) {
       await onCreateEntry(data);
+      addActivity({
+        icon: "success",
+        title: `New ${config.title} entry created`,
+        description: `${config.title} item added`,
+      });
     }
   };
 
   const handleUpdateEntry = async (data: ConservationData) => {
     if (onUpdateEntry) {
       await onUpdateEntry(data);
+      addActivity({
+        icon: "edit",
+        title: `${config.title} entry updated`,
+        description: `Entry ${(data as any).id ?? ""} updated`,
+      });
     }
   };
 
   const handleDeleteEntry = async () => {
     if (onDeleteEntry && modalState.data) {
       await onDeleteEntry(modalState.data);
+      addActivity({
+        icon: "delete",
+        title: `${config.title} entry deleted`,
+        description: `Entry ${(modalState.data as any).id ?? ""} deleted`,
+      });
     }
   };
 
