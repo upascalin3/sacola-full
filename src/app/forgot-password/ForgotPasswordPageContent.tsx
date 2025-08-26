@@ -8,15 +8,17 @@ import { Label } from "@/components/ui/label";
 import { MailCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
+import { AuthApi } from "@/lib/api";
 
 export default function ForgotPasswordPageContent() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [counter, setCounter] = useState(300); // 5 minutes
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [email, setEmail] = useState<string>("");
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
   const router = useRouter();
-  const { login } = useAuth();
+  const { userEmail } = useAuth();
 
   useEffect(() => {
     if (counter <= 0) return;
@@ -57,28 +59,38 @@ export default function ForgotPasswordPageContent() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    setTimeout(() => {
+    const code = otp.join("");
+    if (!email) {
+      setError("Please provide your email.");
+      return;
+    }
+    if (code.length !== 6) {
+      setError("Please enter the 6-digit OTP sent to your email.");
+      return;
+    }
+    try {
+      setIsSubmitting(true);
+      // optionally verify reset token or proceed to reset page where token is also requested
+      await AuthApi.verifyResetToken({ email, token: "", otp: code });
+      router.push("/reset-password");
+    } catch (err: any) {
+      setError(err?.message || "Verification failed");
+    } finally {
       setIsSubmitting(false);
-      if (otp.join("").length !== 6) {
-        setError("Please enter the 6-digit OTP sent to your email.");
-      } else {
-        setError("");
-        // Set authentication state for password reset flow
-        // We'll use a temporary email since we don't have the actual email in this context
-        login("password-reset@temp.com");
-        router.push("/reset-password");
-      }
-    }, 1000);
+    }
   };
 
-  const handleResend = () => {
+  const handleResend = async () => {
     setCounter(300);
     setOtp(["", "", "", "", "", ""]);
     setError("");
-    // Optionally, trigger resend OTP API here
+    if (email) {
+      try {
+        await AuthApi.requestReset({ email });
+      } catch {}
+    }
   };
 
   const minutes = Math.floor(counter / 60);
@@ -106,6 +118,15 @@ export default function ForgotPasswordPageContent() {
           </CardHeader>
           <CardContent className="space-y-6 px-8 pb-8">
             <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
+                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter your email" className="h-12 text-base border-gray-200 focus:border-[#54D12B] focus:ring-[#54D12B]" />
+                <div className="text-right">
+                  <button type="button" onClick={handleResend} className="text-xs text-[#54D12B] hover:underline">
+                    Send/Resend Code
+                  </button>
+                </div>
+              </div>
               <div className="space-y-2">
                 <Label
                   htmlFor="otp"

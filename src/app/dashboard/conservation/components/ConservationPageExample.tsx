@@ -29,6 +29,8 @@ interface ConservationPageExampleProps {
   onCreateEntry?: (data: ConservationData) => Promise<void>;
   onUpdateEntry?: (data: ConservationData) => Promise<void>;
   onDeleteEntry?: (data: ConservationData) => Promise<void>;
+  onFiltersChange?: (filters: any) => void;
+  availableFilters?: string[];
 }
 
 export function ConservationPageExample({
@@ -37,10 +39,20 @@ export function ConservationPageExample({
   onCreateEntry,
   onUpdateEntry,
   onDeleteEntry,
+  onFiltersChange,
+  availableFilters = ['location', 'startDate', 'endDate'],
 }: ConservationPageExampleProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [itemsPerPage, setItemsPerPage] = useState(10); // Increased from 5 to 10
+  const [filters, setFilters] = useState<{
+    location?: string;
+    startDate?: string;
+    endDate?: string;
+    district?: string;
+    status?: string;
+    [key: string]: string | undefined;
+  }>({});
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -84,6 +96,14 @@ export function ConservationPageExample({
         title: `${config.title} entry deleted`,
         description: `Entry ${(modalState.data as any).id ?? ""} deleted`,
       });
+    }
+  };
+
+  const handleFiltersChange = (newFilters: any) => {
+    setFilters(newFilters);
+    setCurrentPage(1); // Reset to first page when filters change
+    if (onFiltersChange) {
+      onFiltersChange(newFilters);
     }
   };
 
@@ -196,11 +216,33 @@ export function ConservationPageExample({
         )}
       </div>
 
-      {/* Search */}
+      {/* Search and Filters */}
       <SearchAndFilters
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
+        filters={filters}
+        onFiltersChange={handleFiltersChange}
+        availableFilters={availableFilters}
       />
+
+      {/* Summary */}
+      {filteredEntries.length > 0 && (
+        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
+          <div className="flex justify-between items-center">
+            <div className="text-sm text-gray-600">
+              Showing <span className="font-semibold">{paginatedEntries.length}</span> of{" "}
+              <span className="font-semibold">{filteredEntries.length}</span> entries
+              {searchTerm.trim() && (
+                <span> matching "{searchTerm}"</span>
+              )}
+            </div>
+            <div className="text-sm text-gray-600">
+              Page <span className="font-semibold">{currentPage}</span> of{" "}
+              <span className="font-semibold">{totalPages}</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {searchTerm.trim() !== "" && filteredEntries.length === 0 ? (
         <Card className="text-center py-12">

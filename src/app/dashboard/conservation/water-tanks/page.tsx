@@ -1,36 +1,88 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ConservationTabs from "../components/ConservationTabs";
 import { ConservationPageExample } from "../components";
 import { WaterTanksEntryData } from "@/lib/conservation/conservation";
+import { ConservationApi } from "@/lib/api";
+import { waterTanksFromBackend, waterTanksToBackend } from "@/lib/conservation/adapters";
+import { useAuth } from "@/lib/auth-context";
 
-const initialWaterTankData: WaterTanksEntryData[] = [
-  {
-    id: "1",
-    waterTankType: "Plastic Tank",
-    location: "Nyange",
-    numberOfWaterTanks: 5,
-    dateDonated: new Date("2024-03-15"),
-    targetBeneficiaries: 500,
-    currentBeneficiaries: 450,
-    description: "Large capacity water tanks for community use",
-  },
-  {
-    id: "2",
-    waterTankType: "Stones Tank",
-    location: "Kinigi",
-    numberOfWaterTanks: 10,
-    dateDonated: new Date("2024-02-20"),
-    targetBeneficiaries: 300,
-    currentBeneficiaries: 280,
-    description: "Medium-sized tanks for household water storage",
-  },
-];
+const initialWaterTankData: WaterTanksEntryData[] = [];
 
 export default function WaterTanksPage() {
   const [waterTankData, setWaterTankData] =
     useState<WaterTanksEntryData[]>(initialWaterTankData);
+  const { token } = useAuth();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      if (!token) return;
+      try {
+        setLoading(true);
+        const res = await ConservationApi.waterTanks.list(token);
+        const items = (res as any)?.data?.items || (res as any)?.items || (Array.isArray(res) ? res : []);
+        setWaterTankData((items as any[]).map(waterTanksFromBackend));
+      } catch (error) {
+        console.error('Failed to load water tank entries:', error);
+        throw error;
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [token]);
+
+  const handleCreate = async (data: WaterTanksEntryData) => {
+    if (!token) return;
+    try {
+      const res = await ConservationApi.waterTanks.create(token, waterTanksToBackend(data));
+      const created = (res as any)?.data || res;
+      setWaterTankData((prev) => [waterTanksFromBackend(created), ...prev]);
+    } catch (error) {
+      console.error('Failed to create water tank entry:', error);
+      throw error;
+    }
+  };
+
+  const handleUpdate = async (data: WaterTanksEntryData) => {
+    if (!token) return;
+    try {
+      const id = (data as any).id;
+      const res = await ConservationApi.waterTanks.update(token, String(id), waterTanksToBackend(data));
+      const updated = (res as any)?.data || res;
+      setWaterTankData((prev) => prev.map((e) => (e.id === String(id) ? waterTanksFromBackend(updated) : e)));
+    } catch (error) {
+      console.error('Failed to update water tank entry:', error);
+      throw error;
+    }
+  };
+
+  const handleDelete = async (data: WaterTanksEntryData) => {
+    if (!token) return;
+    try {
+      const id = (data as any).id;
+      await ConservationApi.waterTanks.remove(token, String(id));
+      setWaterTankData((prev) => prev.filter((e) => e.id !== String(id)));
+    } catch (error) {
+      console.error('Failed to delete water tank entry:', error);
+      throw error;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="ml-64">
+        <div className="max-w-7xl mx-auto">
+          <ConservationTabs />
+          <div className="p-8 flex items-center justify-center">
+            <div className="w-8 h-8 border-4 border-[#54D12B] border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="ml-64">
@@ -40,6 +92,9 @@ export default function WaterTanksPage() {
           <ConservationPageExample
             conservationType="waterTanks"
             entries={waterTankData}
+            onCreateEntry={handleCreate}
+            onUpdateEntry={handleUpdate}
+            onDeleteEntry={handleDelete}
           />
         </div>
       </div>

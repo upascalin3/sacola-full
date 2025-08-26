@@ -29,22 +29,40 @@ export default function UpdateEntryModal({
   conservationType,
 }: UpdateEntryModalProps) {
   const [formData, setFormData] = useState<Record<string, any>>({});
+  const [formError, setFormError] = useState<string>("");
   const config = CONSERVATION_CONFIGS[conservationType];
 
   useEffect(() => {
     if (initialData) {
-      setFormData(initialData as Record<string, any>);
+      const processedData: Record<string, any> = {};
+      config.fields.forEach(field => {
+        const value = (initialData as any)[field.key];
+        if (field.type === 'date' && value instanceof Date) {
+          processedData[field.key] = value.toISOString().split('T')[0];
+        } else {
+          processedData[field.key] = value || '';
+        }
+      });
+      setFormData(processedData);
     } else {
       // Initialize with empty values
       const initialFormData: Record<string, any> = {};
       config.fields.forEach(field => {
-        initialFormData[field.key] = field.type === 'number' ? 0 : '';
+        if (field.type === 'date') {
+          initialFormData[field.key] = new Date().toISOString().split('T')[0];
+        } else if (field.type === 'number') {
+          initialFormData[field.key] = 0;
+        } else {
+          initialFormData[field.key] = '';
+        }
       });
       setFormData(initialFormData);
     }
+    setFormError("");
   }, [initialData, config.fields]);
 
   const handleInputChange = (key: string, value: any) => {
+    setFormError("");
     setFormData(prev => ({
       ...prev,
       [key]: value,
@@ -53,17 +71,49 @@ export default function UpdateEntryModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError("");
     
     // Process form data based on field types
-    const processedData = { ...formData };
-    config.fields.forEach(field => {
-      if (field.type === 'date' && processedData[field.key]) {
-        processedData[field.key] = new Date(processedData[field.key]);
+    const processedData: Record<string, any> = {};
+    
+    for (const field of config.fields) {
+      const value = formData[field.key];
+      
+      if (field.type === 'date') {
+        if (!value) {
+          setFormError(`${field.label} is required`);
+          return;
+        }
+        const date = new Date(value);
+        if (isNaN(date.getTime())) {
+          setFormError(`${field.label} must be a valid date`);
+          return;
+        }
+        processedData[field.key] = date;
+      } else if (field.type === 'number') {
+        if (field.required && (value === '' || value === null || value === undefined)) {
+          setFormError(`${field.label} is required`);
+          return;
+        }
+        const num = Number(value);
+        if (field.required && isNaN(num)) {
+          setFormError(`${field.label} must be a valid number`);
+          return;
+        }
+        processedData[field.key] = isNaN(num) ? 0 : num;
+      } else if (field.type === 'text' || field.type === 'textarea') {
+        if (field.required && (!value || value.trim() === '')) {
+          setFormError(`${field.label} is required`);
+          return;
+        }
+        processedData[field.key] = value || '';
       }
-      if (field.type === 'number' && processedData[field.key]) {
-        processedData[field.key] = Number(processedData[field.key]);
-      }
-    });
+    }
+    
+    // Preserve the original ID for updates
+    if (initialData) {
+      processedData.id = (initialData as any).id;
+    }
     
     onSubmit(processedData as ConservationData);
     onClose();
@@ -90,9 +140,6 @@ export default function UpdateEntryModal({
           <div className="grid grid-cols-2 gap-6">
             {config.fields.filter(field => field.type !== 'textarea').map((field) => {
               const value = formData[field.key] || '';
-              const displayValue = field.type === 'date' && value instanceof Date 
-                ? value.toISOString().split('T')[0]
-                : value;
 
               return (
                 <div key={field.key} className="space-y-2">
@@ -104,7 +151,7 @@ export default function UpdateEntryModal({
                     id={field.key}
                     type={field.type}
                     placeholder={field.placeholder}
-                    value={displayValue}
+                    value={value}
                     onChange={(e) => handleInputChange(field.key, e.target.value)}
                     className="bg-[#F0F8F0] border-gray-300 focus:ring-[#54D12B] focus:border-[#54D12B]"
                     required={field.required}
@@ -131,6 +178,12 @@ export default function UpdateEntryModal({
               />
             </div>
           ))}
+
+          {formError && (
+            <div className="text-red-600 text-sm bg-red-50 p-3 rounded">
+              {formError}
+            </div>
+          )}
 
           <div className="flex justify-end gap-4 pt-6">
             <Button

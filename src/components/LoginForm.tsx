@@ -16,7 +16,7 @@ export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({ email: "", password: "" });
   const [forgotLoading, setForgotLoading] = useState(false);
-  const { login } = useAuth();
+  const { startLogin } = useAuth();
 
   const validateForm = () => {
     const newErrors = { email: "", password: "" };
@@ -39,17 +39,20 @@ export default function LoginForm() {
 
   const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) return;
 
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      login(email); // Set authentication state
+    try {
+      setIsLoading(true);
+      await startLogin(email, password);
       router.push("/otp");
-    }, 1000);
+    } catch (err: any) {
+      setErrors((prev) => ({ ...prev, password: err?.message || "Login failed" }));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

@@ -4,6 +4,9 @@ import React, { useEffect, useState } from "react";
 import { SocioEconomicTabs, SocioEconomicPageExample } from "../../components";
 import type { educationStudentsEntryData } from "@/lib/socio-economic/socio-economic";
 import Link from "next/link";
+import { SocioEconomicApi } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
+import { eduStudentsFromBackend, eduStudentsToBackend } from "@/lib/socio-economic/adapters";
 
 const ACTIVE_KEY = "educationStudentsActive";
 const ARCHIVE_KEY = "educationStudentsArchive";
@@ -42,44 +45,24 @@ function saveArchive(data: educationStudentsEntryData[]) {
   } catch {}
 }
 
-const initialEntries: educationStudentsEntryData[] = [
-  {
-    id: "1",
-    studentName: "Jean Pierre Uwimana",
-    studentLocation: "Nyange Sector",
-    schoolName: "Nyange Primary School",
-    schoolLocation: "Nyange",
-    class: "Primary 6",
-    fundingYears: 3,
-    description:
-      "Orphan student receiving full educational support including school fees, uniforms, and materials",
-  },
-  {
-    id: "2",
-    studentName: "Marie Claire Mukamana",
-    studentLocation: "Kinigi Sector",
-    schoolName: "Kinigi Secondary School",
-    schoolLocation: "Kinigi",
-    class: "Senior 3",
-    fundingYears: 2,
-    description:
-      "Student from vulnerable family receiving partial support for school fees and materials",
-  },
-];
+const initialEntries: educationStudentsEntryData[] = [];
 
 export default function EducationStudentsPage() {
   const [entries, setEntries] =
     useState<educationStudentsEntryData[]>(initialEntries);
+  const { token } = useAuth();
 
   useEffect(() => {
-    const existing = loadActive();
-    if (existing.length === 0) {
-      saveActive(initialEntries);
-      setEntries(initialEntries);
-    } else {
-      setEntries(existing);
-    }
-  }, []);
+    const load = async () => {
+      if (!token) return;
+      try {
+        const res = await SocioEconomicApi.educationStudents.list(token);
+        const items = (res as any)?.data?.items || (res as any)?.items || (Array.isArray(res) ? res : []);
+        setEntries((items as any[]).map(eduStudentsFromBackend));
+      } catch {}
+    };
+    load();
+  }, [token]);
 
   const handleArchive = (entry: educationStudentsEntryData) => {
     const nextActive = entries.filter((e) => e.id !== entry.id);

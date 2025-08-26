@@ -8,10 +8,13 @@ import { Label } from "@/components/ui/label";
 import { Lock, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
+import { AuthApi } from "@/lib/api";
 
 export default function ResetPasswordPageContent() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [email, setEmail] = useState("");
+  const [token, setToken] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -20,26 +23,27 @@ export default function ResetPasswordPageContent() {
   const router = useRouter();
   const { logout } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    setTimeout(() => {
+    if (!email) return setError("Email is required.");
+    if (!token) return setError("Reset token is required.");
+    if (!password || !confirmPassword) return setError("Both fields are required.");
+    if (password.length < 6) return setError("Password must be at least 6 characters.");
+    if (password !== confirmPassword) return setError("Passwords do not match.");
+
+    try {
+      setIsSubmitting(true);
+      await AuthApi.resetPassword({ email, token, otp: "", newPassword: password, confirmNewPassword: confirmPassword });
+      setError("");
+      setSuccess(true);
+      setTimeout(() => {
+        logout();
+      }, 2000);
+    } catch (err: any) {
+      setError(err?.message || "Reset failed");
+    } finally {
       setIsSubmitting(false);
-      if (!password || !confirmPassword) {
-        setError("Both fields are required.");
-      } else if (password.length < 6) {
-        setError("Password must be at least 6 characters.");
-      } else if (password !== confirmPassword) {
-        setError("Passwords do not match.");
-      } else {
-        setError("");
-        setSuccess(true);
-        // Show success message for 2 seconds before redirecting
-        setTimeout(() => {
-          logout();
-        }, 2000);
-      }
-    }, 1000);
+    }
   };
 
   return (
@@ -64,6 +68,14 @@ export default function ResetPasswordPageContent() {
           </CardHeader>
           <CardContent className="space-y-6 px-8 pb-8">
             <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
+                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter your email" className="h-12 text-base border-gray-200 focus:border-[#54D12B] focus:ring-[#54D12B]" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="token" className="text-sm font-medium text-gray-700">Reset Token</Label>
+                <Input id="token" type="text" value={token} onChange={(e) => setToken(e.target.value)} placeholder="Paste the reset token" className="h-12 text-base border-gray-200 focus:border-[#54D12B] focus:ring-[#54D12B]" />
+              </div>
               <div className="space-y-2">
                 <Label
                   htmlFor="password"

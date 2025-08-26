@@ -1,48 +1,52 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { SocioEconomicTabs, SocioEconomicPageExample } from "../../components";
 import type { HousingHousesEntryData } from "@/lib/socio-economic/socio-economic";
+import { SocioEconomicApi } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
+import { housingHousesFromBackend, housingHousesToBackend } from "@/lib/socio-economic/adapters";
 
-const initialEntries: HousingHousesEntryData[] = [
-  {
-    id: "1",
-    houseCategory: "Vulnerable",
-    location: "Nyange",
-    dateBuilt: new Date("2024-03-15"),
-    houseOwner: "John Doe",
-    houseCondition: "Good",
-    materials: "Chairs, 3 Mattresses, 2 Pillows",
-    description:
-      "Today we planted trees and all the trees that we gave were planted so it was successful",
-  },
-  {
-    id: "2",
-    houseCategory: "1994 Genocide Survivor",
-    location: "Kinigi",
-    dateBuilt: new Date("2024-03-15"),
-    houseOwner: "John Doe",
-    houseCondition: "Good",
-    materials: "Chairs, 3 Mattresses, 2 Pillows",
-    description:
-      "Today we planted trees and all the trees that we gave were planted so it was successful",
-  },
-  {
-    id: "3",
-    houseCategory: "Vulnerable",
-    location: "Kinigi",
-    dateBuilt: new Date("2024-03-15"),
-    houseOwner: "John Doe",
-    houseCondition: "Good",
-    materials: "Chairs, 3 Mattresses, 2 Pillows",
-    description:
-      "Today we planted trees and all the trees that we gave were planted so it was successful",
-  },
-];
+const initialEntries: HousingHousesEntryData[] = [];
 
 export default function HousingHousesPage() {
   const [entries, setEntries] =
     useState<HousingHousesEntryData[]>(initialEntries);
+  const { token } = useAuth();
+
+  useEffect(() => {
+    const load = async () => {
+      if (!token) return;
+      try {
+        const res = await SocioEconomicApi.housingHouses.list(token);
+        const items = (res as any)?.data?.items || (res as any)?.items || (Array.isArray(res) ? res : []);
+        setEntries((items as any[]).map(housingHousesFromBackend));
+      } catch {}
+    };
+    load();
+  }, [token]);
+
+  const handleCreate = async (data: HousingHousesEntryData) => {
+    if (!token) return;
+    const res = await SocioEconomicApi.housingHouses.create(token, housingHousesToBackend(data));
+    const created = (res as any)?.data || res;
+    setEntries((prev) => [housingHousesFromBackend(created), ...prev]);
+  };
+
+  const handleUpdate = async (data: HousingHousesEntryData) => {
+    if (!token) return;
+    const id = (data as any).id;
+    const res = await SocioEconomicApi.housingHouses.update(token, String(id), housingHousesToBackend(data));
+    const updated = (res as any)?.data || res;
+    setEntries((prev) => prev.map((e) => (e.id === String(id) ? housingHousesFromBackend(updated) : e)));
+  };
+
+  const handleDelete = async (data: HousingHousesEntryData) => {
+    if (!token) return;
+    const id = (data as any).id;
+    await SocioEconomicApi.housingHouses.remove(token, String(id));
+    setEntries((prev) => prev.filter((e) => e.id !== String(id)));
+  };
 
   return (
     <div className="ml-64">
@@ -52,6 +56,9 @@ export default function HousingHousesPage() {
           <SocioEconomicPageExample
             socioEconomicType="housingHouses"
             entries={entries}
+            onCreateEntry={handleCreate}
+            onUpdateEntry={handleUpdate}
+            onDeleteEntry={handleDelete}
           />
         </div>
       </div>

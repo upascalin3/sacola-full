@@ -1,21 +1,52 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import SocioEconomicTabs from "../components/SocioEconomicTabs";
 import { SocioEconomicPageExample } from "../components/SocioEconomicPageExample";
+import { SocioEconomicApi } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
+import { parkingFromBackend, parkingToBackend } from "@/lib/socio-economic/adapters";
 
-const initialEntries = [
-  {
-    id: "1",
-    parkingName: "Kinigi Public Parking",
-    carsSupported: 120,
-    location: "Kinigi",
-    dateBuilt: new Date("2022-02-20"),
-    description: "Central parking area near the market.",
-  },
-];
+const initialEntries: any[] = [];
 
 export default function ParkingPage() {
+  const [entries, setEntries] = useState<any[]>(initialEntries);
+  const { token } = useAuth();
+
+  useEffect(() => {
+    const load = async () => {
+      if (!token) return;
+      try {
+        const res = await SocioEconomicApi.parking.list(token);
+        const items = (res as any)?.data?.items || (res as any)?.items || (Array.isArray(res) ? res : []);
+        setEntries((items as any[]).map(parkingFromBackend));
+      } catch {}
+    };
+    load();
+  }, [token]);
+
+  const handleCreate = async (data: any) => {
+    if (!token) return;
+    const res = await SocioEconomicApi.parking.create(token, parkingToBackend(data));
+    const created = (res as any)?.data || res;
+    setEntries((prev) => [parkingFromBackend(created), ...prev]);
+  };
+
+  const handleUpdate = async (data: any) => {
+    if (!token) return;
+    const id = (data as any).id;
+    const res = await SocioEconomicApi.parking.update(token, String(id), parkingToBackend(data));
+    const updated = (res as any)?.data || res;
+    setEntries((prev) => prev.map((e: any) => (e.id === String(id) ? parkingFromBackend(updated) : e)));
+  };
+
+  const handleDelete = async (data: any) => {
+    if (!token) return;
+    const id = (data as any).id;
+    await SocioEconomicApi.parking.remove(token, String(id));
+    setEntries((prev) => prev.filter((e: any) => e.id !== String(id)));
+  };
+
   return (
     <div className="ml-64">
       <div className="max-w-7xl mx-auto">
@@ -23,7 +54,10 @@ export default function ParkingPage() {
         <div className="p-8">
           <SocioEconomicPageExample
             socioEconomicType="parking"
-            entries={initialEntries}
+            entries={entries as any}
+            onCreateEntry={handleCreate}
+            onUpdateEntry={handleUpdate}
+            onDeleteEntry={handleDelete}
           />
         </div>
       </div>

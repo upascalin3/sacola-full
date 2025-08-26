@@ -1,45 +1,52 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { SocioEconomicTabs, SocioEconomicPageExample } from "../../components";
 import type { educationMaterialsEntryData } from "@/lib/socio-economic/socio-economic";
+import { SocioEconomicApi } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
+import { eduMaterialsFromBackend, eduMaterialsToBackend } from "@/lib/socio-economic/adapters";
 
-const initialEntries: educationMaterialsEntryData[] = [
-  {
-    id: "1",
-    materialType: "Textbooks",
-    location: "Nyange Primary School",
-    distributedMaterials: 150,
-    dateDonated: new Date("2024-01-15"),
-    targetBeneficiaries: 200,
-    currentBeneficiaries: 180,
-    description: "Mathematics and Science textbooks for primary students",
-  },
-  {
-    id: "2",
-    materialType: "Exercise Books",
-    location: "Kinigi Secondary School",
-    distributedMaterials: 300,
-    dateDonated: new Date("2024-02-20"),
-    targetBeneficiaries: 250,
-    currentBeneficiaries: 250,
-    description: "Exercise books for all subjects and grade levels",
-  },
-  {
-    id: "3",
-    materialType: "Pens and Pencils",
-    location: "Ruhondo Community School",
-    distributedMaterials: 500,
-    dateDonated: new Date("2024-03-10"),
-    targetBeneficiaries: 400,
-    currentBeneficiaries: 380,
-    description: "Writing materials for students in need",
-  },
-];
+const initialEntries: educationMaterialsEntryData[] = [];
 
 export default function EducationMaterialsPage() {
   const [entries, setEntries] =
     useState<educationMaterialsEntryData[]>(initialEntries);
+  const { token } = useAuth();
+
+  useEffect(() => {
+    const load = async () => {
+      if (!token) return;
+      try {
+        const res = await SocioEconomicApi.educationMaterials.list(token);
+        const items = (res as any)?.data?.items || (res as any)?.items || (Array.isArray(res) ? res : []);
+        setEntries((items as any[]).map(eduMaterialsFromBackend));
+      } catch {}
+    };
+    load();
+  }, [token]);
+
+  const handleCreate = async (data: educationMaterialsEntryData) => {
+    if (!token) return;
+    const res = await SocioEconomicApi.educationMaterials.create(token, eduMaterialsToBackend(data));
+    const created = (res as any)?.data || res;
+    setEntries((prev) => [eduMaterialsFromBackend(created), ...prev]);
+  };
+
+  const handleUpdate = async (data: educationMaterialsEntryData) => {
+    if (!token) return;
+    const id = (data as any).id;
+    const res = await SocioEconomicApi.educationMaterials.update(token, String(id), eduMaterialsToBackend(data));
+    const updated = (res as any)?.data || res;
+    setEntries((prev) => prev.map((e) => (e.id === String(id) ? eduMaterialsFromBackend(updated) : e)));
+  };
+
+  const handleDelete = async (data: educationMaterialsEntryData) => {
+    if (!token) return;
+    const id = (data as any).id;
+    await SocioEconomicApi.educationMaterials.remove(token, String(id));
+    setEntries((prev) => prev.filter((e) => e.id !== String(id)));
+  };
 
   return (
     <div className="ml-64">
@@ -49,6 +56,9 @@ export default function EducationMaterialsPage() {
           <SocioEconomicPageExample
             socioEconomicType="educationMaterials"
             entries={entries}
+            onCreateEntry={handleCreate}
+            onUpdateEntry={handleUpdate}
+            onDeleteEntry={handleDelete}
           />
         </div>
       </div>

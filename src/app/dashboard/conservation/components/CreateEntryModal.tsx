@@ -27,18 +27,27 @@ export default function CreateEntryModal({
   conservationType,
 }: CreateEntryModalProps) {
   const [formData, setFormData] = useState<Record<string, any>>({});
+  const [formError, setFormError] = useState<string>("");
   const config = CONSERVATION_CONFIGS[conservationType];
 
   // Initialize form data when conservation type changes
   useEffect(() => {
     const initialData: Record<string, any> = {};
     config.fields.forEach(field => {
-      initialData[field.key] = field.type === 'number' ? 0 : '';
+      if (field.type === 'date') {
+        initialData[field.key] = new Date().toISOString().split('T')[0]; // Today's date as YYYY-MM-DD
+      } else if (field.type === 'number') {
+        initialData[field.key] = 0;
+      } else {
+        initialData[field.key] = '';
+      }
     });
     setFormData(initialData);
+    setFormError("");
   }, [conservationType, config.fields]);
 
   const handleInputChange = (key: string, value: any) => {
+    setFormError("");
     setFormData(prev => ({
       ...prev,
       [key]: value,
@@ -47,25 +56,71 @@ export default function CreateEntryModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError("");
     
     // Process form data based on field types
-    const processedData = { ...formData };
-    config.fields.forEach(field => {
-      if (field.type === 'date' && processedData[field.key]) {
-        processedData[field.key] = new Date(processedData[field.key]);
-      }
-      if (field.type === 'number' && processedData[field.key]) {
-        processedData[field.key] = Number(processedData[field.key]);
-      }
-    });
+    const processedData: Record<string, any> = {};
     
+    console.log('Raw form data before processing:', formData);
+    console.log('Field configurations:', config.fields);
+    
+    for (const field of config.fields) {
+      const value = formData[field.key];
+      console.log(`Processing field ${field.key}:`, { value, type: typeof value, fieldType: field.type });
+      
+      if (field.type === 'date') {
+        if (!value) {
+          setFormError(`${field.label} is required`);
+          return;
+        }
+        console.log(`Processing date field ${field.key}:`, { value, type: typeof value });
+        const date = new Date(value);
+        console.log(`Date conversion result:`, { date, isValid: !isNaN(date.getTime()), timestamp: date.getTime() });
+        if (isNaN(date.getTime())) {
+          setFormError(`${field.label} must be a valid date`);
+          return;
+        }
+        // Convert to Date object for the interface
+        processedData[field.key] = date;
+        console.log(`Final date value for ${field.key}:`, processedData[field.key]);
+      } else if (field.type === 'number') {
+        if (field.required && (value === '' || value === null || value === undefined)) {
+          setFormError(`${field.label} is required`);
+          return;
+        }
+        const num = Number(value);
+        if (field.required && isNaN(num)) {
+          setFormError(`${field.label} must be a valid number`);
+          return;
+        }
+        processedData[field.key] = isNaN(num) ? 0 : num;
+      } else if (field.type === 'text' || field.type === 'textarea') {
+        if (field.required && (!value || value.trim() === '')) {
+          setFormError(`${field.label} is required`);
+          return;
+        }
+        processedData[field.key] = value || '';
+      }
+    }
+    
+    // Add an ID for new entries (will be replaced by backend)
+    processedData.id = 'new';
+    
+    console.log('Form submitting data:', processedData);
+    console.log('Form data types:', Object.entries(processedData).map(([key, value]) => ({ key, value, type: typeof value, isDate: value instanceof Date })));
     onSubmit(processedData as ConservationData);
     onClose();
     
     // Reset form
     const initialData: Record<string, any> = {};
     config.fields.forEach(field => {
-      initialData[field.key] = field.type === 'number' ? 0 : '';
+      if (field.type === 'date') {
+        initialData[field.key] = new Date().toISOString().split('T')[0];
+      } else if (field.type === 'number') {
+        initialData[field.key] = 0;
+      } else {
+        initialData[field.key] = '';
+      }
     });
     setFormData(initialData);
   };
@@ -93,9 +148,6 @@ export default function CreateEntryModal({
           <div className="grid grid-cols-2 gap-6">
             {config.fields.filter(field => field.type !== 'textarea').map((field) => {
               const value = formData[field.key] || '';
-              const displayValue = field.type === 'date' && value instanceof Date 
-                ? value.toISOString().split('T')[0]
-                : value;
 
               return (
                 <div key={field.key} className="space-y-2">
@@ -107,7 +159,7 @@ export default function CreateEntryModal({
                     id={field.key}
                     type={field.type}
                     placeholder={field.placeholder}
-                    value={displayValue}
+                    value={value}
                     onChange={(e) => handleInputChange(field.key, e.target.value)}
                     className="bg-[#F0F8F0] border-gray-300 focus:ring-[#54D12B] focus:border-[#54D12B]"
                     required={field.required}
@@ -134,6 +186,12 @@ export default function CreateEntryModal({
               />
             </div>
           ))}
+
+          {formError && (
+            <div className="text-red-600 text-sm bg-red-50 p-3 rounded">
+              {formError}
+            </div>
+          )}
 
           <div className="flex justify-end gap-4 pt-6">
             <Button

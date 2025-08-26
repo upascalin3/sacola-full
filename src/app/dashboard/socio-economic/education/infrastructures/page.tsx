@@ -1,50 +1,52 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { SocioEconomicTabs, SocioEconomicPageExample } from "../../components";
 import type { educationInfrastructuresEntryData } from "@/lib/socio-economic/socio-economic";
+import { SocioEconomicApi } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
+import { eduInfraFromBackend, eduInfraToBackend } from "@/lib/socio-economic/adapters";
 
-const initialEntries: educationInfrastructuresEntryData[] = [
-  {
-    id: "1",
-    schoolName: "Nyange Primary School",
-    location: "Nyange Sector",
-    infrastructureType: "Primary",
-    dateDonated: new Date("2023-06-15"),
-    description:
-      "Complete primary school building with 8 classrooms, office, and library",
-  },
-  {
-    id: "2",
-    schoolName: "Kinigi Secondary School",
-    location: "Kinigi Sector",
-    infrastructureType: "Ordinary Level",
-    dateDonated: new Date("2023-09-20"),
-    description: "Secondary school building with science lab and computer room",
-  },
-  {
-    id: "3",
-    schoolName: "Ruhondo Early Childhood Center",
-    location: "Ruhondo Sector",
-    infrastructureType: "ECD",
-    dateDonated: new Date("2024-01-10"),
-    description:
-      "Early childhood development center with play area and learning materials",
-  },
-  {
-    id: "4",
-    schoolName: "Musanze Vocational Training Center",
-    location: "Musanze District",
-    infrastructureType: "Vocational Training",
-    dateDonated: new Date("2023-12-05"),
-    description:
-      "Vocational training facility for carpentry, welding, and tailoring",
-  },
-];
+const initialEntries: educationInfrastructuresEntryData[] = [];
 
 export default function EducationInfrastructuresPage() {
   const [entries, setEntries] =
     useState<educationInfrastructuresEntryData[]>(initialEntries);
+  const { token } = useAuth();
+
+  useEffect(() => {
+    const load = async () => {
+      if (!token) return;
+      try {
+        const res = await SocioEconomicApi.educationInfrastructures.list(token);
+        const items = (res as any)?.data?.items || (res as any)?.items || (Array.isArray(res) ? res : []);
+        setEntries((items as any[]).map(eduInfraFromBackend));
+      } catch {}
+    };
+    load();
+  }, [token]);
+
+  const handleCreate = async (data: educationInfrastructuresEntryData) => {
+    if (!token) return;
+    const res = await SocioEconomicApi.educationInfrastructures.create(token, eduInfraToBackend(data));
+    const created = (res as any)?.data || res;
+    setEntries((prev) => [eduInfraFromBackend(created), ...prev]);
+  };
+
+  const handleUpdate = async (data: educationInfrastructuresEntryData) => {
+    if (!token) return;
+    const id = (data as any).id;
+    const res = await SocioEconomicApi.educationInfrastructures.update(token, String(id), eduInfraToBackend(data));
+    const updated = (res as any)?.data || res;
+    setEntries((prev) => prev.map((e) => (e.id === String(id) ? eduInfraFromBackend(updated) : e)));
+  };
+
+  const handleDelete = async (data: educationInfrastructuresEntryData) => {
+    if (!token) return;
+    const id = (data as any).id;
+    await SocioEconomicApi.educationInfrastructures.remove(token, String(id));
+    setEntries((prev) => prev.filter((e) => e.id !== String(id)));
+  };
 
   return (
     <div className="ml-64">
@@ -54,6 +56,9 @@ export default function EducationInfrastructuresPage() {
           <SocioEconomicPageExample
             socioEconomicType="educationInfrastructures"
             entries={entries}
+            onCreateEntry={handleCreate}
+            onUpdateEntry={handleUpdate}
+            onDeleteEntry={handleDelete}
           />
         </div>
       </div>

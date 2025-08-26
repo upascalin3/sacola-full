@@ -9,14 +9,20 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isOtpPending, userEmail } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (!isAuthenticated) {
-      router.push("/");
+      // If not authenticated but OTP is pending, go to OTP page
+      if (isOtpPending && userEmail) {
+        router.push("/otp");
+      } else {
+        // Otherwise go to login
+        router.push("/");
+      }
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, isOtpPending, userEmail, router]);
 
   // Show loading or nothing while checking authentication
   if (!isAuthenticated) {
