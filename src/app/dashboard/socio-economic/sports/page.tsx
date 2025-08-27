@@ -14,38 +14,71 @@ export default function SportsPage() {
   const [entries, setEntries] = useState<sportsEntryData[]>(initialEntries);
   const { token } = useAuth();
 
+  const loadData = async () => {
+    if (!token) return;
+    try {
+      const res = await SocioEconomicApi.sports.list(token);
+      const payload = res as any;
+      const items = Array.isArray(payload?.data)
+        ? payload.data
+        : (payload?.data?.items || payload?.items || (Array.isArray(payload) ? payload : []));
+      setEntries((items as any[]).map(sportsFromBackend));
+    } catch (err) {
+      console.error("Failed to load Sports entries", err);
+    }
+  };
+
   useEffect(() => {
-    const load = async () => {
-      if (!token) return;
-      try {
-        const res = await SocioEconomicApi.sports.list(token);
-        const items = (res as any)?.data?.items || (res as any)?.items || (Array.isArray(res) ? res : []);
-        setEntries((items as any[]).map(sportsFromBackend));
-      } catch {}
+    loadData();
+  }, [token]);
+
+  useEffect(() => {
+    const onFocus = () => {
+      if (document.visibilityState === 'visible') loadData();
     };
-    load();
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onFocus);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onFocus);
+    };
   }, [token]);
 
   const handleCreate = async (data: sportsEntryData) => {
     if (!token) return;
-    const res = await SocioEconomicApi.sports.create(token, sportsToBackend(data));
-    const created = (res as any)?.data || res;
-    setEntries((prev) => [sportsFromBackend(created), ...prev]);
+    try {
+      const res = await SocioEconomicApi.sports.create(token, sportsToBackend(data));
+      const created = (res as any)?.data || res;
+      setEntries((prev) => [sportsFromBackend(created), ...prev]);
+      await loadData();
+    } catch (err) {
+      console.error("Failed to create Sports entry", err);
+    }
   };
 
   const handleUpdate = async (data: sportsEntryData) => {
     if (!token) return;
-    const id = (data as any).id;
-    const res = await SocioEconomicApi.sports.update(token, String(id), sportsToBackend(data));
+    const id = String((data as any)?.id || "");  
+    if (!id) {
+      console.error("Missing id for Sports update; aborting");
+      return;
+    }
+    const res = await SocioEconomicApi.sports.update(token, String(id), sportsToBackend(data) as any);
     const updated = (res as any)?.data || res;
     setEntries((prev) => prev.map((e) => (e.id === String(id) ? sportsFromBackend(updated) : e)));
+    await loadData();
   };
 
   const handleDelete = async (data: sportsEntryData) => {
     if (!token) return;
-    const id = (data as any).id;
+    const id = String((data as any)?.id || "");
+    if (!id) {
+      console.error("Missing id for Sports delete; aborting");
+      return;
+    }
     await SocioEconomicApi.sports.remove(token, String(id));
     setEntries((prev) => prev.filter((e) => e.id !== String(id)));
+    await loadData();
   };
 
   return (
@@ -56,9 +89,9 @@ export default function SportsPage() {
           <SocioEconomicPageExample
             socioEconomicType="sports"
             entries={entries}
-            onCreateEntry={handleCreate}
-            onUpdateEntry={handleUpdate}
-            onDeleteEntry={handleDelete}
+            onCreateEntry={handleCreate as any}
+            onUpdateEntry={handleUpdate as any}
+            onDeleteEntry={handleDelete as any}
           />
         </div>
       </div>

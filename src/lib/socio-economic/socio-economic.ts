@@ -115,6 +115,17 @@ interface educationStudentsEntryData{
     description: string;
 }
 
+interface itTrainingEntryData{
+    id: string;
+    name: string;
+    location: string;
+    numPeople: number;
+    materials?: string;
+    trainingDuration?: number;
+    date: Date;
+    description: string;
+}
+
 interface healthCentresEntryData{
     id: string;
     healthCentreName: string;
@@ -170,6 +181,7 @@ export type {
     educationMaterialsEntryData,
     educationInfrastructuresEntryData,
     educationStudentsEntryData,
+    itTrainingEntryData,
     healthCentresEntryData,
     officesEntryData,
     sportsEntryData,

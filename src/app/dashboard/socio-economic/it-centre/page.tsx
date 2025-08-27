@@ -3,49 +3,90 @@
 import React, { useEffect, useState } from "react";
 import SocioEconomicTabs from "../components/SocioEconomicTabs";
 import { SocioEconomicPageExample } from "../components/SocioEconomicPageExample";
-import type { officesEntryData } from "@/lib/socio-economic/socio-economic";
+import type { itTrainingEntryData } from "@/lib/socio-economic/socio-economic";
 import { SocioEconomicApi } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import { officesFromBackend, officesToBackend } from "@/lib/socio-economic/adapters";
+import { itTrainingFromBackend, itTrainingToBackend } from "@/lib/socio-economic/adapters";
 
-const initialEntries: officesEntryData[] = [];
+const initialEntries: itTrainingEntryData[] = [];
 
 export default function ItCentrePage() {
-  const [entries, setEntries] = useState<officesEntryData[]>(initialEntries);
+  const [entries, setEntries] = useState<itTrainingEntryData[]>(initialEntries);
   const { token } = useAuth();
 
+  const loadData = async () => {
+    if (!token) return;
+    try {
+      const res = await SocioEconomicApi.itTraining.list(token);
+      const payload = res as any;
+      const items = Array.isArray(payload?.data)
+        ? payload.data
+        : (payload?.data?.items || payload?.items || (Array.isArray(payload) ? payload : []));
+      setEntries((items as any[]).map(itTrainingFromBackend));
+    } catch (err) {
+      console.error("Failed to load IT Training entries", err);
+    }
+  };
+
   useEffect(() => {
-    const load = async () => {
-      if (!token) return;
-      try {
-        const res = await SocioEconomicApi.offices.list(token);
-        const items = (res as any)?.data?.items || (res as any)?.items || (Array.isArray(res) ? res : []);
-        setEntries((items as any[]).map(officesFromBackend));
-      } catch {}
-    };
-    load();
+    loadData();
   }, [token]);
 
-  const handleCreate = async (data: officesEntryData) => {
+  useEffect(() => {
+    const onFocus = () => {
+      if (document.visibilityState === 'visible') loadData();
+    };
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onFocus);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onFocus);
+    };
+  }, [token]);
+
+  const handleCreate = async (data: itTrainingEntryData) => {
     if (!token) return;
-    const res = await SocioEconomicApi.offices.create(token, officesToBackend(data));
-    const created = (res as any)?.data || res;
-    setEntries((prev) => [officesFromBackend(created), ...prev]);
+    try {
+      const res = await SocioEconomicApi.itTraining.create(token, itTrainingToBackend(data));
+      const created = (res as any)?.data || res;
+      setEntries((prev) => [itTrainingFromBackend(created), ...prev]);
+      await loadData();
+    } catch (err) {
+      console.error("Failed to create IT Training entry", err);
+    }
   };
 
-  const handleUpdate = async (data: officesEntryData) => {
+  const handleUpdate = async (data: itTrainingEntryData) => {
     if (!token) return;
-    const id = (data as any).id;
-    const res = await SocioEconomicApi.offices.update(token, String(id), officesToBackend(data));
-    const updated = (res as any)?.data || res;
-    setEntries((prev) => prev.map((e) => (e.id === String(id) ? officesFromBackend(updated) : e)));
+    const id = String((data as any)?.id || "");
+    if (!id) {
+      console.error("Missing id for IT Training update; aborting");
+      return;
+    }
+    try {
+      const res = await SocioEconomicApi.itTraining.update(token, String(id), itTrainingToBackend(data) as any);
+      const updated = (res as any)?.data || res;
+      setEntries((prev) => prev.map((e) => (e.id === String(id) ? itTrainingFromBackend(updated) : e)));
+      await loadData();
+    } catch (err) {
+      console.error("Failed to update IT Training entry", err);
+    }
   };
 
-  const handleDelete = async (data: officesEntryData) => {
+  const handleDelete = async (data: itTrainingEntryData) => {
     if (!token) return;
-    const id = (data as any).id;
-    await SocioEconomicApi.offices.remove(token, String(id));
-    setEntries((prev) => prev.filter((e) => e.id !== String(id)));
+    const id = String((data as any)?.id || "");
+    if (!id) {
+      console.error("Missing id for IT Training delete; aborting");
+      return;
+    }
+    try {
+      await SocioEconomicApi.itTraining.remove(token, String(id));
+      setEntries((prev) => prev.filter((e) => e.id !== String(id)));
+      await loadData();
+    } catch (err) {
+      console.error("Failed to delete IT Training entry", err);
+    }
   };
 
   return (
@@ -54,11 +95,11 @@ export default function ItCentrePage() {
         <SocioEconomicTabs />
         <div className="p-8">
           <SocioEconomicPageExample
-            socioEconomicType="offices"
+            socioEconomicType="itTraining"
             entries={entries}
-            onCreateEntry={handleCreate}
-            onUpdateEntry={handleUpdate}
-            onDeleteEntry={handleDelete}
+            onCreateEntry={handleCreate as any}
+            onUpdateEntry={handleUpdate as any}
+            onDeleteEntry={handleDelete as any}
           />
         </div>
       </div>

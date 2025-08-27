@@ -29,8 +29,7 @@ interface ConservationPageExampleProps {
   onCreateEntry?: (data: ConservationData) => Promise<void>;
   onUpdateEntry?: (data: ConservationData) => Promise<void>;
   onDeleteEntry?: (data: ConservationData) => Promise<void>;
-  onFiltersChange?: (filters: any) => void;
-  availableFilters?: string[];
+  isLoading?: boolean; // show lightweight inline loader, not full-page
 }
 
 export function ConservationPageExample({
@@ -39,20 +38,13 @@ export function ConservationPageExample({
   onCreateEntry,
   onUpdateEntry,
   onDeleteEntry,
-  onFiltersChange,
-  availableFilters = ['location', 'startDate', 'endDate'],
+  isLoading = false,
 }: ConservationPageExampleProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10); // Increased from 5 to 10
-  const [filters, setFilters] = useState<{
-    location?: string;
-    startDate?: string;
-    endDate?: string;
-    district?: string;
-    status?: string;
-    [key: string]: string | undefined;
-  }>({});
+  const [itemsPerPage, setItemsPerPage] = useState(10);     
+  const [filters] = useState<{ [key: string]: string | undefined }>({});
+  const handleFiltersChange = (_: any) => {};
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -99,13 +91,6 @@ export function ConservationPageExample({
     }
   };
 
-  const handleFiltersChange = (newFilters: any) => {
-    setFilters(newFilters);
-    setCurrentPage(1); // Reset to first page when filters change
-    if (onFiltersChange) {
-      onFiltersChange(newFilters);
-    }
-  };
 
   const config = CONSERVATION_CONFIGS[conservationType];
 
@@ -130,7 +115,7 @@ export function ConservationPageExample({
       return values.some((v) => {
         if (v == null) return false;
         if (v instanceof Date)
-          return v.toLocaleDateString().toLowerCase().includes(lower);
+          return v.toISOString().toLowerCase().includes(lower);
         return String(v).toLowerCase().includes(lower);
       });
     });
@@ -216,13 +201,19 @@ export function ConservationPageExample({
         )}
       </div>
 
+      {isLoading && (
+        <div className="bg-white rounded-lg border border-gray-200 p-4 flex items-center gap-3">
+          <div className="w-5 h-5 border-2 border-[#54D12B] border-t-transparent rounded-full animate-spin" />
+          <span className="text-sm text-gray-600">Loading...</span>
+        </div>
+      )}
+
       {/* Search and Filters */}
       <SearchAndFilters
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         filters={filters}
         onFiltersChange={handleFiltersChange}
-        availableFilters={availableFilters}
       />
 
       {/* Summary */}
@@ -285,8 +276,11 @@ export function ConservationPageExample({
                       {visibleFields.map((field) => {
                         const raw = (entry as any)[field];
                         let display: string | number = raw as any;
-                        if (raw instanceof Date)
-                          display = raw.toLocaleDateString();
+                        if (raw instanceof Date) {
+                          display = raw.toISOString().split('T')[0];
+                        } else if (typeof raw === 'string' && raw.includes('T')) {
+                          display = raw.split('T')[0];
+                        }
                         return (
                           <td
                             key={field}

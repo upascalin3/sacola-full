@@ -83,6 +83,22 @@ export default function ConservationPage() {
       description: { value: data.description, type: typeof data.description, exists: 'description' in data }
     });
     
+    // Add date debugging as per SOLUTION 13
+    console.log('=== DATE DEBUGGING ===');
+    console.log('Original datePlanted:', data.datePlanted);
+    console.log('Type of datePlanted:', typeof data.datePlanted);
+    console.log('Is Date instance:', data.datePlanted instanceof Date);
+    
+    if (data.datePlanted instanceof Date) {
+      console.log('Date methods:');
+      console.log('- getTime():', data.datePlanted.getTime());
+      console.log('- toISOString():', data.datePlanted.toISOString());
+      console.log('- toString():', data.datePlanted.toString());
+      console.log('- toDateString():', data.datePlanted.toDateString());
+      console.log('- ISO format:', data.datePlanted.toISOString());
+    }
+    console.log('=====================');
+    
     try {
       console.log('Creating tree planting entry with data:', data);
       console.log('Data types:', {
@@ -103,18 +119,35 @@ export default function ConservationPage() {
         treeType: typeof backendData.treeType,
         location: typeof backendData.location,
         numberOfTrees: typeof backendData.numberOfTrees,
-        datePlanted: typeof backendData.datePlanted,
-        datePlantedValue: backendData.datePlanted,
-        datePlantedISO: backendData.datePlanted,
+        datePlanted: typeof (backendData as any).datePlanted,
+        datePlantedValue: (backendData as any).datePlanted,
         targetBeneficiaries: typeof backendData.targetBeneficiaries,
         currentBeneficiaries: typeof backendData.currentBeneficiaries,
         description: typeof backendData.description
       });
       
       // Validate the backend data
-      if (!backendData.treeType || !backendData.location || !backendData.numberOfTrees || !backendData.datePlanted) {
+      if (!backendData.treeType || !backendData.location || !backendData.numberOfTrees || !(backendData as any).datePlanted) {
         console.error('Backend data validation failed:', backendData);
         throw new Error('Backend data validation failed');
+      }
+      
+      // Validate data types match backend entity
+      if (typeof backendData.treeType !== 'string' || 
+          typeof backendData.location !== 'string' || 
+          typeof backendData.numberOfTrees !== 'number' || 
+          typeof (backendData as any).datePlanted !== 'string' ||
+          typeof backendData.targetBeneficiaries !== 'number' ||
+          typeof backendData.currentBeneficiaries !== 'number') {
+        console.error('Backend data type validation failed:', {
+          treeType: { value: backendData.treeType, type: typeof backendData.treeType, expected: 'string' },
+          location: { value: backendData.location, type: typeof backendData.location, expected: 'string' },
+          numberOfTrees: { value: backendData.numberOfTrees, type: typeof backendData.numberOfTrees, expected: 'number' },
+          datePlanted: { value: (backendData as any).datePlanted, type: typeof (backendData as any).datePlanted, expected: 'string (YYYY-MM-DD)' },
+          targetBeneficiaries: { value: backendData.targetBeneficiaries, type: typeof backendData.targetBeneficiaries, expected: 'number' },
+          currentBeneficiaries: { value: backendData.currentBeneficiaries, type: typeof backendData.currentBeneficiaries, expected: 'number' }
+        });
+        throw new Error('Backend data type validation failed');
       }
       
       console.log('Making API call to create tree planting entry...');
@@ -122,7 +155,28 @@ export default function ConservationPage() {
       console.log('Request payload:', backendData);
       console.log('Request payload JSON:', JSON.stringify(backendData, null, 2));
       
-      const res = await ConservationApi.treePlanting.create(token, backendData);
+      // Log what the backend entity expects vs what we're sending
+      console.log('Backend entity expects:', {
+        treeType: 'string',
+        location: 'string', 
+        numberOfTrees: 'number',
+        datePlanted: 'string (YYYY-MM-DD)',
+        description: 'string (optional)',
+        targetBeneficiaries: 'number',
+        currentBeneficiaries: 'number'
+      });
+      
+      console.log('What we\'re sending:', {
+        treeType: { value: backendData.treeType, type: typeof backendData.treeType },
+        location: { value: backendData.location, type: typeof backendData.location },
+        numberOfTrees: { value: backendData.numberOfTrees, type: typeof backendData.numberOfTrees },
+        datePlanted: { value: (backendData as any).datePlanted, type: typeof (backendData as any).datePlanted, format: (backendData as any).datePlanted },
+        description: { value: backendData.description, type: typeof backendData.description },
+        targetBeneficiaries: { value: backendData.targetBeneficiaries, type: typeof backendData.targetBeneficiaries },
+        currentBeneficiaries: { value: backendData.currentBeneficiaries, type: typeof backendData.currentBeneficiaries }
+      });
+      
+      const res = await ConservationApi.treePlanting.create(token, backendData as any);
       console.log('API response received:', res);
       
       // Validate the response
@@ -141,6 +195,8 @@ export default function ConservationPage() {
         const processedEntry = treeFromBackend(created);
         console.log('Processed entry:', processedEntry);
         setTreeData((prev) => [processedEntry, ...prev]);
+        // Reload fresh data from server after create
+        await loadData();
       } catch (processingError: any) {
         console.error('Error processing API response:', processingError);
         throw new Error(`Failed to process API response: ${processingError?.message || 'Unknown error'}`);
@@ -206,9 +262,11 @@ export default function ConservationPage() {
     
     try {
       const id = (data as any).id;
-      const res = await ConservationApi.treePlanting.update(token, String(id), treeToBackend(data as TreeEntryData));
+      const res = await ConservationApi.treePlanting.update(token, String(id), treeToBackend(data as TreeEntryData) as any);
       const updated = (res as any)?.data || res;
       setTreeData((prev) => prev.map((e) => (e.id === String(id) ? treeFromBackend(updated) : e)));
+      // Reload fresh data from server after update
+      await loadData();
     } catch (error: any) {
       console.error('Failed to update tree planting entry:', error);
       throw error;
@@ -228,14 +286,12 @@ export default function ConservationPage() {
       const id = (data as any).id;
       await ConservationApi.treePlanting.remove(token, String(id));
       setTreeData((prev) => prev.filter((e) => e.id !== String(id)));
+      // Reload fresh data from server after delete
+      await loadData();
     } catch (error: any) {
       console.error('Failed to delete tree planting entry:', error);
       throw error;
     }
-  };
-
-  const handleFiltersChange = (filters: any) => {
-    loadData(filters);
   };
 
   if (loading) {
@@ -259,12 +315,11 @@ export default function ConservationPage() {
           <ConservationPageExample
             conservationType="tree"
             entries={treeData}
+            isLoading={loading}
             onCreateEntry={handleCreate}
             onUpdateEntry={handleUpdate}
             onDeleteEntry={handleDelete}
-            onFiltersChange={handleFiltersChange}
-            availableFilters={['location', 'startDate', 'endDate']}
-          />
+          />  
         </div>
       </div>
     </div>

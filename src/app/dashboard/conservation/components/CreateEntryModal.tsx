@@ -35,7 +35,8 @@ export default function CreateEntryModal({
     const initialData: Record<string, any> = {};
     config.fields.forEach(field => {
       if (field.type === 'date') {
-        initialData[field.key] = new Date().toISOString().split('T')[0]; // Today's date as YYYY-MM-DD
+        // HTML date inputs expect YYYY-MM-DD
+        initialData[field.key] = new Date().toISOString().split('T')[0];
       } else if (field.type === 'number') {
         initialData[field.key] = 0;
       } else {
@@ -74,14 +75,17 @@ export default function CreateEntryModal({
           return;
         }
         console.log(`Processing date field ${field.key}:`, { value, type: typeof value });
-        const date = new Date(value);
-        console.log(`Date conversion result:`, { date, isValid: !isNaN(date.getTime()), timestamp: date.getTime() });
-        if (isNaN(date.getTime())) {
+        // Expecting YYYY-MM-DD from input; validate format and value
+        const isDateOnly = typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
+        const d = new Date(value);
+        const isValid = !isNaN(d.getTime());
+        console.log(`Date validation:`, { isDateOnly, isValid, parsed: d.toISOString() });
+        if (!isValid) {
           setFormError(`${field.label} must be a valid date`);
           return;
         }
-        // Convert to Date object for the interface
-        processedData[field.key] = date;
+        // Keep as YYYY-MM-DD string to avoid timezone shifts
+        processedData[field.key] = isDateOnly ? value : d.toISOString().split('T')[0];
         console.log(`Final date value for ${field.key}:`, processedData[field.key]);
       } else if (field.type === 'number') {
         if (field.required && (value === '' || value === null || value === undefined)) {
@@ -102,9 +106,6 @@ export default function CreateEntryModal({
         processedData[field.key] = value || '';
       }
     }
-    
-    // Add an ID for new entries (will be replaced by backend)
-    processedData.id = 'new';
     
     console.log('Form submitting data:', processedData);
     console.log('Form data types:', Object.entries(processedData).map(([key, value]) => ({ key, value, type: typeof value, isDate: value instanceof Date })));

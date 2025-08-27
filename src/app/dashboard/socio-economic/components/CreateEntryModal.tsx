@@ -33,7 +33,13 @@ export default function CreateEntryModal({
   useEffect(() => {
     const initialData: Record<string, any> = {};
     config.fields.forEach((field) => {
-      initialData[field.key] = field.type === "number" ? 0 : "";
+      if (field.type === 'date') {
+        initialData[field.key] = new Date().toISOString().split('T')[0];
+      } else if (field.type === 'number') {
+        initialData[field.key] = 0;
+      } else {
+        initialData[field.key] = "";
+      }
     });
     setFormData(initialData);
   }, [socioEconomicType, config.fields]);
@@ -52,7 +58,12 @@ export default function CreateEntryModal({
     const processedData = { ...formData };
     config.fields.forEach((field) => {
       if (field.type === "date" && processedData[field.key]) {
-        processedData[field.key] = new Date(processedData[field.key]);
+        const d = new Date(processedData[field.key]);
+        if (isNaN(d.getTime())) {
+          delete (processedData as any)[field.key];
+        } else {
+          processedData[field.key] = d;
+        }
       }
       if (field.type === "number" && processedData[field.key]) {
         processedData[field.key] = Number(processedData[field.key]);
@@ -65,7 +76,13 @@ export default function CreateEntryModal({
     // Reset form
     const initialData: Record<string, any> = {};
     config.fields.forEach((field) => {
-      initialData[field.key] = field.type === "number" ? 0 : "";
+      if (field.type === 'date') {
+        initialData[field.key] = new Date().toISOString().split('T')[0];
+      } else if (field.type === "number") {
+        initialData[field.key] = 0;
+      } else {
+        initialData[field.key] = "";
+      }
     });
     setFormData(initialData);
   };
@@ -103,7 +120,7 @@ export default function CreateEntryModal({
                 const value = formData[field.key] || "";
                 const displayValue =
                   field.type === "date" && value instanceof Date
-                    ? value.toISOString().split("T")[0]
+                    ? value.toISOString().split('T')[0]
                     : value;
 
                 return (

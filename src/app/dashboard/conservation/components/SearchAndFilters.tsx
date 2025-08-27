@@ -28,6 +28,8 @@ export default function SearchAndFilters({
   availableFilters = ['location', 'startDate', 'endDate']
 }: SearchAndFiltersProps) {
   const [showFilters, setShowFilters] = useState(false);
+  // Disable filter controls entirely for conservation pages
+  const showFilterControls = false;
 
   const handleFilterChange = (key: string, value: string) => {
     onFiltersChange({
@@ -65,33 +67,35 @@ export default function SearchAndFilters({
               />
             </div>
           </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-2 ${showFilters ? 'bg-[#54D12B] text-white border-[#54D12B]' : 'border-gray-300'}`}
-            >
-              <Filter size={16} />
-              Filters
-              {hasActiveFilters && (
-                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-              )}
-            </Button>
-            {hasActiveFilters && (
+          {showFilterControls && (
+            <div className="flex gap-2">
               <Button
                 variant="outline"
-                onClick={clearFilters}
-                className="flex items-center gap-2 border-gray-300 text-gray-600 hover:text-gray-800"
+                onClick={() => setShowFilters(!showFilters)}
+                className={`flex items-center gap-2 ${showFilters ? 'bg-[#54D12B] text-white border-[#54D12B]' : 'border-gray-300'}`}
               >
-                <X size={16} />
-                Clear
+                <Filter size={16} />
+                Filters
+                {hasActiveFilters && (
+                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                )}
               </Button>
-            )}
-          </div>
+              {hasActiveFilters && (
+                <Button
+                  variant="outline"
+                  onClick={clearFilters}
+                  className="flex items-center gap-2 border-gray-300 text-gray-600 hover:text-gray-800"
+                >
+                  <X size={16} />
+                  Clear
+                </Button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Advanced Filters */}
-        {showFilters && (
+        {showFilterControls && showFilters && (
           <div className="border-t border-gray-200 pt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {availableFilters.includes('location') && (

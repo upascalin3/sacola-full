@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import ConservationTabs from "../components/ConservationTabs";
-import { ConservationPageExample } from "../components";
+import { ConservationData, ConservationPageExample } from "../components";
 import { BambooEntryData } from "@/lib/conservation/conservation";
 import { ConservationApi } from "@/lib/api";
 import { bambooFromBackend, bambooToBackend } from "@/lib/conservation/adapters";
@@ -46,26 +46,24 @@ export default function BambooPage() {
     loadData();
   }, [token]);
 
-  const handleCreate = async (data: BambooEntryData) => {
+  const handleCreate = async (data: ConservationData) => {
     if (!token) return;
     try {
       console.log('Creating bamboo entry with data:', data);
       console.log('Data types:', {
-        distanceCovered: typeof data.distanceCovered,
-        location: typeof data.location,
-        dateDonated: typeof data.dateDonated,
-        dateDonatedValue: data.dateDonated,
-        dateDonatedInstance: data.dateDonated instanceof Date,
-        description: typeof data.description
+        distanceCovered: typeof (data as any).distanceCovered,
+        location: typeof (data as any).location,
+        datePlanted: typeof (data as any).datePlanted,
+        description: typeof (data as any).description
       });
       
-      const backendData = bambooToBackend(data);
+      const payload = data as unknown as BambooEntryData;
+      const backendData = bambooToBackend(payload);
       console.log('Converted to backend format:', backendData);
       console.log('Backend data types:', {
         distanceCovered: typeof backendData.distanceCovered,
         location: typeof backendData.location,
-        dateDonated: typeof backendData.dateDonated,
-        dateDonatedValue: backendData.dateDonated,
+        datePlanted: typeof backendData.datePlanted,
         description: typeof backendData.description
       });
       
@@ -75,19 +73,20 @@ export default function BambooPage() {
     } catch (error) {
       console.error('Failed to create bamboo entry:', error);
       console.error('Error details:', {
-        message: error.message,
-        stack: error.stack,
+        message: (error as any).message,
+        stack: (error as any).stack,
         data: data
       });
       throw error;
     }
   };
 
-  const handleUpdate = async (data: BambooEntryData) => {
+  const handleUpdate = async (data: ConservationData) => {
     if (!token) return;
     try {
-      const id = (data as any).id;
-      const res = await ConservationApi.bamboo.update(token, String(id), bambooToBackend(data));
+      const payload = data as unknown as BambooEntryData;
+      const id = (payload as any).id;
+      const res = await ConservationApi.bamboo.update(token, String(id), bambooToBackend(payload));
       const updated = (res as any)?.data || res;
       setBambooData((prev) => prev.map((e) => (e.id === String(id) ? bambooFromBackend(updated) : e)));
     } catch (error) {
@@ -96,7 +95,7 @@ export default function BambooPage() {
     }
   };
 
-  const handleDelete = async (data: BambooEntryData) => {
+  const handleDelete = async (data: ConservationData) => {
     if (!token) return;
     try {
       const id = (data as any).id;
@@ -106,10 +105,6 @@ export default function BambooPage() {
       console.error('Failed to delete bamboo entry:', error);
       throw error;
     }
-  };
-
-  const handleFiltersChange = (filters: any) => {
-    loadData(filters);
   };
 
   if (loading) {
@@ -136,8 +131,6 @@ export default function BambooPage() {
             onCreateEntry={handleCreate}
             onUpdateEntry={handleUpdate}
             onDeleteEntry={handleDelete}
-            onFiltersChange={handleFiltersChange}
-            availableFilters={['location', 'startDate', 'endDate']}
           />
         </div>
       </div>

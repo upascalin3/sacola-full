@@ -32,9 +32,10 @@ export default function DetailsModal({
   const config = CONSERVATION_CONFIGS[conservationType];
   const dataRecord = data as Record<string, any>;
 
-  // Get the first field value as the title (or use conservation type title)
-  const titleValue = config.fields[0]
-    ? dataRecord[config.fields[0].key]
+  // Use the first field as title unless it's a date; for date-first configs (e.g., Buffalo Wall), use the section title instead
+  const firstField = config.fields[0];
+  const titleValue = firstField && firstField.type !== 'date'
+    ? dataRecord[firstField.key]
     : config.title;
 
   return (
@@ -66,10 +67,14 @@ export default function DetailsModal({
             // Format different field types
             if (field.type === "number" && typeof value === "number") {
               displayValue = value.toLocaleString();
-            } else if (field.type === "date" && value instanceof Date) {
-              displayValue = value.toLocaleDateString();
-            } else if (field.type === "date" && typeof value === "string") {
-              displayValue = new Date(value).toLocaleDateString();
+            } else if (field.type === "date") {
+              if (value instanceof Date && !isNaN(value.getTime())) {
+                displayValue = value.toISOString().split('T')[0];
+              } else if (typeof value === "string") {
+                // Expecting YYYY-MM-DD; format robustly
+                const d = new Date(value);
+                displayValue = isNaN(d.getTime()) ? value : d.toISOString().split('T')[0];
+              }
             }
 
             return (

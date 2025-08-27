@@ -449,7 +449,9 @@ export default function AnalyticsPageContent() {
                   <span className="text-3xl font-bold text-gray-900">
                     {getTotalBeneficiaries().toLocaleString()}
                   </span>
-                  <p className="text-gray-500 text-sm mt-1">{selectedYear}</p>
+                  <p className="text-gray-500 text-sm mt-1">
+                    Date: {new Date().toISOString()}
+                  </p>
                 </Card>
 
                 <Card className="p-6">

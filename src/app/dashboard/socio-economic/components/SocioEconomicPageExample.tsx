@@ -89,11 +89,15 @@ export function SocioEconomicPageExample({
 
   const handleUpdateEntry = async (data: SocioEconomicData) => {
     if (onUpdateEntry) {
-      await onUpdateEntry(data);
+      // Ensure id is preserved from the selected row (like conservation)
+      const ensured = { ...(data as any) };
+      const currentId = String(((modalState.data as any)?.id) || (ensured?.id ?? ""));
+      if (currentId) ensured.id = currentId;
+      await onUpdateEntry(ensured as SocioEconomicData);
       addActivity({
         icon: "edit",
         title: `${config.title} entry updated`,
-        description: `Entry ${(data as any).id ?? ""} updated`,
+        description: `Entry ${currentId || (data as any).id || ""} updated`,
       });
     }
   };
@@ -131,8 +135,9 @@ export function SocioEconomicPageExample({
       const values = Object.values(entry as unknown as Record<string, unknown>);
       return values.some((v) => {
         if (v == null) return false;
-        if (v instanceof Date)
-          return v.toLocaleDateString().toLowerCase().includes(lower);
+        if (v instanceof Date) {
+          return v.toISOString().toLowerCase().includes(lower);
+        }
         return String(v).toLowerCase().includes(lower);
       });
     });
@@ -159,32 +164,43 @@ export function SocioEconomicPageExample({
     downloadCsvFromObjects(filename, rows);
   };
 
-  // Sync details modal with URL ?id=
+  // Sync details modal with URL ?id= (mirror conservation: only open if current list has the id)
   useEffect(() => {
     const idFromUrl = searchParams.get("id");
     if (!idFromUrl) return;
     const found = entries.find((e) => String((e as any).id) === idFromUrl);
-    if (found) {
-      if (
-        modalState.action !== "details" ||
-        (modalState.data as any)?.id !== (found as any).id
-      ) {
-        openDetailsModal(found);
-      }
+    if (!found) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("id");
+      const next = params.toString();
+      router.replace(next ? `${pathname}?${next}` : pathname);
+      return;
     }
-  }, [
-    searchParams,
-    entries,
-    modalState.action,
-    modalState.data,
-    openDetailsModal,
-  ]);
+    if (
+      modalState.action !== "details" ||
+      (modalState.data as any)?.id !== (found as any).id
+    ) {
+      openDetailsModal(found);
+    }
+  }, [searchParams, entries, modalState.action, modalState.data, openDetailsModal, router, pathname]);
 
   const handleOpenDetails = (entry: SocioEconomicData) => {
+    const entryId = String((entry as any)?.id || "");
+    if (!entryId) return;
     const params = new URLSearchParams(searchParams.toString());
-    params.set("id", String((entry as any).id));
+    params.set("id", entryId);
     router.replace(`${pathname}?${params.toString()}`);
     openDetailsModal(entry);
+  };
+
+  const safeOpenUpdate = (entry: SocioEconomicData) => {
+    if (!String((entry as any)?.id || "")) return;
+    openUpdateModal(entry);
+  };
+
+  const safeOpenDelete = (entry: SocioEconomicData) => {
+    if (!String((entry as any)?.id || "")) return;
+    openDeleteModal(entry);
   };
 
   const handleCloseModal = () => {
@@ -267,8 +283,11 @@ export function SocioEconomicPageExample({
                       {visibleFields.map((field) => {
                         const raw = (entry as any)[field];
                         let display: string | number = raw as any;
-                        if (raw instanceof Date)
-                          display = raw.toLocaleDateString();
+                        if (raw instanceof Date) {
+                          display = raw.toISOString().split('T')[0];
+                        } else if (typeof raw === 'string' && raw.includes('T')) {
+                          display = raw.split('T')[0];
+                        }
                         return (
                           <td
                             key={field}
@@ -286,6 +305,7 @@ export function SocioEconomicPageExample({
                             variant="ghost"
                             size="sm"
                             onClick={() => handleOpenDetails(entry)}
+                            disabled={!Boolean((entry as any)?.id)}
                             className="flex items-center text-[#54D12B] hover:text-[#43b71f] p-0 h-auto"
                           >
                             <ExternalLink size={16} />
@@ -296,7 +316,8 @@ export function SocioEconomicPageExample({
                               title="Edit entry"
                               variant="ghost"
                               size="sm"
-                              onClick={() => openUpdateModal(entry)}
+                              onClick={() => safeOpenUpdate(entry)}
+                              disabled={!Boolean((entry as any)?.id)}
                               className="flex items-center text-[#54D12B] hover:text-[#43b71f] p-0 h-auto"
                             >
                               <Pencil size={16} />
@@ -308,7 +329,8 @@ export function SocioEconomicPageExample({
                               title="Delete entry"
                               variant="ghost"
                               size="sm"
-                              onClick={() => openDeleteModal(entry)}
+                              onClick={() => safeOpenDelete(entry)}
+                              disabled={!Boolean((entry as any)?.id)}
                               className="flex items-center text-red-600 hover:text-red-700 p-0 h-auto"
                             >
                               <Trash2 size={16} />

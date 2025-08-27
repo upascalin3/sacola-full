@@ -15,6 +15,7 @@ import {
   sportsEntryData,
   parkingEntryData,
   waterPumpsEntryData,
+  itTrainingEntryData,
 } from "@/lib/socio-economic/socio-economic";
 
 // Union type for all socio-economic interfaces
@@ -30,6 +31,7 @@ export type SocioEconomicData =
   | educationMaterialsEntryData
   | educationInfrastructuresEntryData
   | educationStudentsEntryData
+  | itTrainingEntryData
   | healthCentresEntryData
   | officesEntryData
   | sportsEntryData
@@ -52,6 +54,7 @@ export type SocioEconomicType =
   | "educationMaterials"
   | "educationInfrastructures"
   | "educationStudents"
+  | "itTraining"
   | "healthCentres"
   | "offices"
   | "sports"
@@ -451,6 +454,18 @@ export const SOCIO_ECONOMIC_CONFIGS: Record<
         type: "textarea",
         required: true,
       },
+    ],
+  },
+  itTraining: {
+    title: "IT Training",
+    fields: [
+      { key: "name", label: "Training Name", type: "text", required: true },
+      { key: "location", label: "Location", type: "text", required: true },
+      { key: "numPeople", label: "People Trained", type: "number", required: true },
+      { key: "materials", label: "Materials", type: "text" },
+      { key: "trainingDuration", label: "Training Duration (days)", type: "number" },
+      { key: "date", label: "Date", type: "date", required: true },
+      { key: "description", label: "Description", type: "textarea" },
     ],
   },
   healthCentres: {

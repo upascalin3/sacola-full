@@ -37,8 +37,16 @@ export default function UpdateEntryModal({
       const processedData: Record<string, any> = {};
       config.fields.forEach(field => {
         const value = (initialData as any)[field.key];
-        if (field.type === 'date' && value instanceof Date) {
-          processedData[field.key] = value.toISOString().split('T')[0];
+        if (field.type === 'date') {
+          if (value instanceof Date) {
+            processedData[field.key] = value.toISOString().split('T')[0];
+          } else if (typeof value === 'string') {
+            // Normalize any incoming string date to YYYY-MM-DD
+            const d = new Date(value);
+            processedData[field.key] = isNaN(d.getTime()) ? '' : d.toISOString().split('T')[0];
+          } else {
+            processedData[field.key] = '';
+          }
         } else {
           processedData[field.key] = value || '';
         }
@@ -84,12 +92,13 @@ export default function UpdateEntryModal({
           setFormError(`${field.label} is required`);
           return;
         }
+        const isDateOnly = typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
         const date = new Date(value);
         if (isNaN(date.getTime())) {
           setFormError(`${field.label} must be a valid date`);
           return;
         }
-        processedData[field.key] = date;
+        processedData[field.key] = isDateOnly ? value : date.toISOString().split('T')[0];
       } else if (field.type === 'number') {
         if (field.required && (value === '' || value === null || value === undefined)) {
           setFormError(`${field.label} is required`);

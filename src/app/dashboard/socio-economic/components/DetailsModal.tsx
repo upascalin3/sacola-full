@@ -66,10 +66,12 @@ export default function DetailsModal({
             // Format different field types
             if (field.type === "number" && typeof value === "number") {
               displayValue = value.toLocaleString();
-            } else if (field.type === "date" && value instanceof Date) {
-              displayValue = value.toLocaleDateString();
-            } else if (field.type === "date" && typeof value === "string") {
-              displayValue = new Date(value).toLocaleDateString();
+            } else if (field.type === "date") {
+              if (value instanceof Date && !isNaN(value.getTime())) {
+                displayValue = value.toISOString().split('T')[0];
+              } else if (typeof value === 'string') {
+                displayValue = value.includes('T') ? value.split('T')[0] : value;
+              }
             }
 
             return (

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import ConservationTabs from "../components/ConservationTabs";
-import { ConservationPageExample } from "../components";
+import { ConservationData, ConservationPageExample } from "../components";
 import { WaterTanksEntryData } from "@/lib/conservation/conservation";
 import { ConservationApi } from "@/lib/api";
 import { waterTanksFromBackend, waterTanksToBackend } from "@/lib/conservation/adapters";
@@ -34,10 +34,11 @@ export default function WaterTanksPage() {
     load();
   }, [token]);
 
-  const handleCreate = async (data: WaterTanksEntryData) => {
+  const handleCreate = async (data: ConservationData) => {
     if (!token) return;
     try {
-      const res = await ConservationApi.waterTanks.create(token, waterTanksToBackend(data));
+      const payload = data as unknown as WaterTanksEntryData;
+      const res = await ConservationApi.waterTanks.create(token, waterTanksToBackend(payload));
       const created = (res as any)?.data || res;
       setWaterTankData((prev) => [waterTanksFromBackend(created), ...prev]);
     } catch (error) {
@@ -46,11 +47,12 @@ export default function WaterTanksPage() {
     }
   };
 
-  const handleUpdate = async (data: WaterTanksEntryData) => {
+  const handleUpdate = async (data: ConservationData) => {
     if (!token) return;
     try {
-      const id = (data as any).id;
-      const res = await ConservationApi.waterTanks.update(token, String(id), waterTanksToBackend(data));
+      const payload = data as unknown as WaterTanksEntryData;
+      const id = (payload as any).id;
+      const res = await ConservationApi.waterTanks.update(token, String(id), waterTanksToBackend(payload));
       const updated = (res as any)?.data || res;
       setWaterTankData((prev) => prev.map((e) => (e.id === String(id) ? waterTanksFromBackend(updated) : e)));
     } catch (error) {
@@ -59,7 +61,7 @@ export default function WaterTanksPage() {
     }
   };
 
-  const handleDelete = async (data: WaterTanksEntryData) => {
+  const handleDelete = async (data: ConservationData) => {
     if (!token) return;
     try {
       const id = (data as any).id;

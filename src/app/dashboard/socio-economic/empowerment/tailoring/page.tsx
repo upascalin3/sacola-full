@@ -10,7 +10,7 @@ const initialEntries: empowermentTailoringEntryData[] = [
     tailoringCenter: "center 1",
     location: "Nyange",
     people: 200,
-    date: new Date("2024-02-15"),
+    date: new Date("2024-02-15T00:00:00.000Z"),
     trainingDuration: "6 months",
     materials: "Imashini zo kudoda",
     description:
@@ -21,7 +21,7 @@ const initialEntries: empowermentTailoringEntryData[] = [
     tailoringCenter: "center 2",
     location: "Kinigi",
     people: 122,
-    date: new Date("2025-01-12"),
+    date: new Date("2025-01-12T00:00:00.000Z"),
     trainingDuration: "1 year",
     materials: "Imashini zo kudoda",
     description:

@@ -33,12 +33,32 @@ export default function UpdateEntryModal({
 
   useEffect(() => {
     if (initialData) {
-      setFormData(initialData as Record<string, any>);
+      const normalized: Record<string, any> = {};
+      config.fields.forEach((field) => {
+        const value = (initialData as any)[field.key];
+        if (field.type === 'date') {
+          if (value instanceof Date) {
+            normalized[field.key] = value.toISOString().split('T')[0];
+          } else if (typeof value === 'string') {
+            const d = new Date(value);
+            normalized[field.key] = isNaN(d.getTime()) ? '' : d.toISOString().split('T')[0];
+          } else {
+            normalized[field.key] = '';
+          }
+        } else {
+          normalized[field.key] = value ?? (field.type === 'number' ? 0 : '');
+        }
+      });
+      setFormData(normalized);
     } else {
       // Initialize with empty values
       const initialFormData: Record<string, any> = {};
       config.fields.forEach((field) => {
-        initialFormData[field.key] = field.type === "number" ? 0 : "";
+        if (field.type === 'date') {
+          initialFormData[field.key] = new Date().toISOString().split('T')[0];
+        } else {
+          initialFormData[field.key] = field.type === "number" ? 0 : "";
+        }
       });
       setFormData(initialFormData);
     }
@@ -64,6 +84,12 @@ export default function UpdateEntryModal({
         processedData[field.key] = Number(processedData[field.key]);
       }
     });
+
+    // Ensure id from the selected row is preserved for update
+    const idFromInitial = (initialData as any)?.id;
+    if (idFromInitial) {
+      (processedData as any).id = String(idFromInitial);
+    }
 
     onSubmit(processedData as SocioEconomicData);
     onClose();
@@ -100,10 +126,7 @@ export default function UpdateEntryModal({
               .filter((field) => field.type !== "textarea")
               .map((field) => {
                 const value = formData[field.key] || "";
-                const displayValue =
-                  field.type === "date" && value instanceof Date
-                    ? value.toISOString().split("T")[0]
-                    : value;
+                const displayValue = value;
 
                 return (
                   <div key={field.key} className="space-y-2">

@@ -1,6 +1,6 @@
 export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE";
 
-const BASE_URL = "https://sacola-backend-test.onrender.com" as const;
+const BASE_URL = "http://localhost:3000" as const;
 
 export interface ApiResponse<T> {
   success?: boolean;
@@ -286,6 +286,10 @@ export const SocioEconomicApi = {
     { sportName: string; location: string; condition: string; dateBuilt: string; description?: string },
     { sportName: string; location: string; condition: string; dateBuilt: string; description?: string }
   >("/api/socio-economic/sports"),
+  livestock: createCrud<
+    { animalType: string; location: string; distributedAnimals: number; deaths: number; soldAnimals: number; transferredAnimals: number; currentlyOwned: number; dateDonated: string; targetBeneficiaries: number; currentBeneficiaries: number; description?: string },
+    { animalType: string; location: string; distributedAnimals: number; deaths: number; soldAnimals: number; transferredAnimals: number; currentlyOwned: number; dateDonated: string; targetBeneficiaries: number; currentBeneficiaries: number; description?: string }
+  >("/api/socio-economic/livestock"),
   offices: createCrud<
     { officeName: string; location: string; dateBuilt: string; description?: string },
     { officeName: string; location: string; dateBuilt: string; description?: string }
