@@ -394,7 +394,7 @@ export function waterPumpsToBackend(e: waterPumpsEntryData) {
         ? e.dateBuilt.toISOString().split("T")[0]
         : new Date(e.dateBuilt as any).toISOString().split("T")[0],
     pumpCondition: e.pumpCondition,
-    description: e.description || undefined,
+    description: e.description || "",
   };
 }
 
@@ -418,7 +418,7 @@ export function parkingToBackend(e: parkingEntryData) {
       e.dateBuilt instanceof Date
         ? e.dateBuilt.toISOString().split("T")[0]
         : new Date(e.dateBuilt as any).toISOString().split("T")[0],
-    description: e.description || undefined,
+    description: e.description || "",
   };
 }
 

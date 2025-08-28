@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function OtpPageContent() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -10,7 +11,13 @@ export default function OtpPageContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
-  const { userEmail, isOtpPending, isAuthenticated, verifyOtpAndLogin, logout } = useAuth();
+  const {
+    userEmail,
+    isOtpPending,
+    isAuthenticated,
+    verifyOtpAndLogin,
+    logout,
+  } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -45,7 +52,8 @@ export default function OtpPageContent() {
     try {
       setIsSubmitting(true);
       setError("");
-      if (!userEmail || !isOtpPending) throw new Error("Missing or invalid OTP session");
+      if (!userEmail || !isOtpPending)
+        throw new Error("Missing or invalid OTP session");
       await verifyOtpAndLogin(userEmail, code);
       // Success - router will handle redirect to dashboard via useEffect
     } catch (err: any) {
@@ -106,9 +114,12 @@ export default function OtpPageContent() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Verify Your Email</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            Verify Your Email
+          </h1>
           <p className="text-gray-600">
-            We've sent a 6-digit code to <span className="font-semibold">{userEmail}</span>
+            We've sent a 6-digit code to{" "}
+            <span className="font-semibold">{userEmail}</span>
           </p>
         </div>
 
@@ -121,7 +132,9 @@ export default function OtpPageContent() {
               {otp.map((digit, index) => (
                 <input
                   key={index}
-                  ref={(el) => (inputRefs.current[index] = el)}
+                  ref={(el) => {
+                    inputRefs.current[index] = el;
+                  }}
                   type="text"
                   maxLength={1}
                   value={digit}
@@ -150,7 +163,9 @@ export default function OtpPageContent() {
                 </span>
               </span>
               {counter === 0 && (
-                <span className="text-red-500 font-medium">Expired - request a new code</span>
+                <span className="text-red-500 font-medium">
+                  Expired - request a new code
+                </span>
               )}
             </div>
 
@@ -163,24 +178,15 @@ export default function OtpPageContent() {
             </button>
 
             <div className="text-center">
-              <button
-                type="button"
-                onClick={handleResend}
-                disabled={isSubmitting || counter > 0}
-                className="text-[#54D12B] hover:text-[#4BC025] disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-              >
-                Didn't receive the code? Resend
-              </button>
-            </div>
-
-            <div className="text-center">
-              <button
-                type="button"
-                onClick={logout}
-                className="text-gray-500 hover:text-gray-700 text-sm"
-              >
-                Use a different email
-              </button>
+              <Link href="/">
+                <button
+                  type="button"
+                  onClick={logout}
+                  className="text-gray-500 hover:text-gray-700 text-sm"
+                >
+                  Back to Login
+                </button>
+              </Link>
             </div>
           </div>
         </form>

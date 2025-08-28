@@ -752,14 +752,14 @@ export const SocioEconomicApi = {
       location: string;
       dateBuilt: string;
       pumpCondition: string;
-      description?: string;
+      description: string;
     },
     {
       pumpName: string;
       location: string;
       dateBuilt: string;
       pumpCondition: string;
-      description?: string;
+      description: string;
     }
   >("/api/socio-economic/water-pumps"),
   parking: createCrud<
@@ -768,14 +768,14 @@ export const SocioEconomicApi = {
       carsSupported: number;
       location: string;
       dateBuilt: string;
-      description?: string;
+      description: string;
     },
     {
       parkingName: string;
       carsSupported: number;
       location: string;
       dateBuilt: string;
-      description?: string;
+      description: string;
     }
   >("/api/socio-economic/parking"),
   empowermentTailoring: createCrud<
