@@ -6,7 +6,10 @@ import { SocioEconomicPageExample } from "../components/SocioEconomicPageExample
 import type { itTrainingEntryData } from "@/lib/socio-economic/socio-economic";
 import { SocioEconomicApi } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import { itTrainingFromBackend, itTrainingToBackend } from "@/lib/socio-economic/adapters";
+import {
+  itTrainingFromBackend,
+  itTrainingToBackend,
+} from "@/lib/socio-economic/adapters";
 
 const initialEntries: itTrainingEntryData[] = [];
 
@@ -21,7 +24,9 @@ export default function ItCentrePage() {
       const payload = res as any;
       const items = Array.isArray(payload?.data)
         ? payload.data
-        : (payload?.data?.items || payload?.items || (Array.isArray(payload) ? payload : []));
+        : payload?.data?.items ||
+          payload?.items ||
+          (Array.isArray(payload) ? payload : []);
       setEntries((items as any[]).map(itTrainingFromBackend));
     } catch (err) {
       console.error("Failed to load IT Training entries", err);
@@ -34,20 +39,23 @@ export default function ItCentrePage() {
 
   useEffect(() => {
     const onFocus = () => {
-      if (document.visibilityState === 'visible') loadData();
+      if (document.visibilityState === "visible") loadData();
     };
-    window.addEventListener('focus', onFocus);
-    document.addEventListener('visibilitychange', onFocus);
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
     return () => {
-      window.removeEventListener('focus', onFocus);
-      document.removeEventListener('visibilitychange', onFocus);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
     };
   }, [token]);
 
   const handleCreate = async (data: itTrainingEntryData) => {
     if (!token) return;
     try {
-      const res = await SocioEconomicApi.itTraining.create(token, itTrainingToBackend(data));
+      const res = await SocioEconomicApi.itTraining.create(
+        token,
+        itTrainingToBackend(data)
+      );
       const created = (res as any)?.data || res;
       setEntries((prev) => [itTrainingFromBackend(created), ...prev]);
       await loadData();
@@ -64,9 +72,17 @@ export default function ItCentrePage() {
       return;
     }
     try {
-      const res = await SocioEconomicApi.itTraining.update(token, String(id), itTrainingToBackend(data) as any);
+      const res = await SocioEconomicApi.itTraining.update(
+        token,
+        String(id),
+        itTrainingToBackend(data) as any
+      );
       const updated = (res as any)?.data || res;
-      setEntries((prev) => prev.map((e) => (e.id === String(id) ? itTrainingFromBackend(updated) : e)));
+      setEntries((prev) =>
+        prev.map((e) =>
+          e.id === String(id) ? itTrainingFromBackend(updated) : e
+        )
+      );
       await loadData();
     } catch (err) {
       console.error("Failed to update IT Training entry", err);
@@ -90,7 +106,7 @@ export default function ItCentrePage() {
   };
 
   return (
-    <div className="ml-64">
+    <div className="ml-64 overflow-hidden">
       <div className="max-w-7xl mx-auto">
         <SocioEconomicTabs />
         <div className="p-8">
@@ -106,4 +122,3 @@ export default function ItCentrePage() {
     </div>
   );
 }
-

@@ -36,17 +36,19 @@ export default function UpdateEntryModal({
       const normalized: Record<string, any> = {};
       config.fields.forEach((field) => {
         const value = (initialData as any)[field.key];
-        if (field.type === 'date') {
+        if (field.type === "date") {
           if (value instanceof Date) {
-            normalized[field.key] = value.toISOString().split('T')[0];
-          } else if (typeof value === 'string') {
+            normalized[field.key] = value.toISOString().split("T")[0];
+          } else if (typeof value === "string") {
             const d = new Date(value);
-            normalized[field.key] = isNaN(d.getTime()) ? '' : d.toISOString().split('T')[0];
+            normalized[field.key] = isNaN(d.getTime())
+              ? ""
+              : d.toISOString().split("T")[0];
           } else {
-            normalized[field.key] = '';
+            normalized[field.key] = "";
           }
         } else {
-          normalized[field.key] = value ?? (field.type === 'number' ? 0 : '');
+          normalized[field.key] = value ?? (field.type === "number" ? 0 : "");
         }
       });
       setFormData(normalized);
@@ -54,8 +56,8 @@ export default function UpdateEntryModal({
       // Initialize with empty values
       const initialFormData: Record<string, any> = {};
       config.fields.forEach((field) => {
-        if (field.type === 'date') {
-          initialFormData[field.key] = new Date().toISOString().split('T')[0];
+        if (field.type === "date") {
+          initialFormData[field.key] = new Date().toISOString().split("T")[0];
         } else {
           initialFormData[field.key] = field.type === "number" ? 0 : "";
         }
@@ -89,6 +91,11 @@ export default function UpdateEntryModal({
     const idFromInitial = (initialData as any)?.id;
     if (idFromInitial) {
       (processedData as any).id = String(idFromInitial);
+    } else {
+      console.warn(
+        "UpdateEntryModal - No ID found in initialData:",
+        initialData
+      );
     }
 
     onSubmit(processedData as SocioEconomicData);

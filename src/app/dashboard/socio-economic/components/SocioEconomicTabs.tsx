@@ -124,12 +124,16 @@ export default function SocioEconomicTabs() {
       ref={(el) => {
         dropdownRefs.current[name] = el;
       }}
-      className={`absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg py-2 min-w-[240px] z-[20000] transition-all duration-300 ease-out ${
+      className={`fixed bg-white border border-gray-200 rounded-lg shadow-lg py-2 min-w-[240px] z-[50000] transition-all duration-300 ease-out ${
         openDropdown === name
           ? "opacity-100 visible translate-y-0"
           : "opacity-0 invisible -translate-y-1 pointer-events-none"
       }`}
-      style={{ position: "absolute", top: "100%", left: 0 }}
+      style={{
+        position: "fixed",
+        top: buttonRefs.current[name]?.getBoundingClientRect().bottom || 0,
+        left: buttonRefs.current[name]?.getBoundingClientRect().left || 0,
+      }}
       role="menu"
       aria-orientation="vertical"
       aria-labelledby={`dropdown-button-${name}`}
@@ -168,7 +172,7 @@ export default function SocioEconomicTabs() {
   );
 
   return (
-    <div className="sticky top-0 bg-white z-[9999] overflow-visible">
+    <div className="sticky top-0 bg-white z-[9999]">
       <div className="max-w-7xl mx-auto px-8 pt-7 relative">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-6">
@@ -176,8 +180,8 @@ export default function SocioEconomicTabs() {
           </h1>
         </div>
 
-        <div className="relative">
-          <div className="flex whitespace-nowrap gap-6 border-b border-gray-200 overflow-visible">
+        <div className="relative overflow-visible">
+          <div className="flex whitespace-nowrap gap-6 border-b border-gray-200 overflow-x-auto overflow-y-visible no-scrollbar">
             <Link
               href="/dashboard/socio-economic"
               className={`pb-4 px-4 font-medium text-sm transition-all duration-200 relative flex-shrink-0 rounded-md focus:outline-none focus:ring-2 focus:ring-[#54D12B] focus:ring-offset-2 ${
@@ -281,12 +285,6 @@ export default function SocioEconomicTabs() {
                   onClick={closeDropdown}
                 >
                   Supported Students
-                </DropdownLink>
-                <DropdownLink
-                  href="/dashboard/socio-economic/education/students/archived"
-                  onClick={closeDropdown}
-                >
-                  Archived Students
                 </DropdownLink>
               </DropdownMenu>
             </div>

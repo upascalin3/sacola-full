@@ -183,8 +183,9 @@ export const SOCIO_ECONOMIC_CONFIGS: Record<
       {
         key: "houseCategory",
         label: "House Category",
-        type: "text",
+        type: "select",
         required: true,
+        options: ["1994 Genocide Survivor", "Vulnerable"],
       },
       { key: "houseOwner", label: "House Owner", type: "text", required: true },
       { key: "location", label: "Location", type: "text", required: true },
@@ -319,7 +320,7 @@ export const SOCIO_ECONOMIC_CONFIGS: Record<
       {
         key: "trainingDuration",
         label: "Training Duration",
-        type: "text",
+        type: "number",
         required: true,
       },
       { key: "materials", label: "Materials", type: "text", required: true },
@@ -449,6 +450,12 @@ export const SOCIO_ECONOMIC_CONFIGS: Record<
         required: true,
       },
       {
+        key: "date",
+        label: "Date",
+        type: "date",
+        required: true,
+      },
+      {
         key: "description",
         label: "Description",
         type: "textarea",
@@ -461,9 +468,18 @@ export const SOCIO_ECONOMIC_CONFIGS: Record<
     fields: [
       { key: "name", label: "Training Name", type: "text", required: true },
       { key: "location", label: "Location", type: "text", required: true },
-      { key: "numPeople", label: "People Trained", type: "number", required: true },
+      {
+        key: "numPeople",
+        label: "People Trained",
+        type: "number",
+        required: true,
+      },
       { key: "materials", label: "Materials", type: "text" },
-      { key: "trainingDuration", label: "Training Duration (days)", type: "number" },
+      {
+        key: "trainingDuration",
+        label: "Training Duration (days)",
+        type: "number",
+      },
       { key: "date", label: "Date", type: "date", required: true },
       { key: "description", label: "Description", type: "textarea" },
     ],
@@ -492,7 +508,12 @@ export const SOCIO_ECONOMIC_CONFIGS: Record<
     fields: [
       { key: "officeName", label: "Office Name", type: "text", required: true },
       { key: "location", label: "Location", type: "text", required: true },
-      { key: "dateBuilt", label: "Date Built", type: "date", required: true },
+      {
+        key: "dateBuilt",
+        label: "Date Built",
+        type: "date",
+        required: true,
+      },
       {
         key: "description",
         label: "Description",

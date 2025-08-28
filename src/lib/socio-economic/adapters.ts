@@ -12,6 +12,7 @@ import {
   HousingVillagesEntryData,
   waterPumpsEntryData,
   parkingEntryData,
+  empowermentTailoringEntryData,
 } from "@/lib/socio-economic/socio-economic";
 
 // Education - Infrastructures
@@ -30,7 +31,10 @@ export function eduInfraToBackend(e: educationInfrastructuresEntryData) {
     schoolName: e.schoolName,
     location: e.location,
     infrastructureType: e.infrastructureType,
-    dateDonated: e.dateDonated instanceof Date ? e.dateDonated.toISOString().split('T')[0] : new Date(e.dateDonated as any).toISOString().split('T')[0],
+    dateDonated:
+      e.dateDonated instanceof Date
+        ? e.dateDonated.toISOString().split("T")[0]
+        : new Date(e.dateDonated as any).toISOString().split("T")[0],
     description: e.description || undefined,
   };
 }
@@ -53,7 +57,10 @@ export function eduMaterialsToBackend(e: educationMaterialsEntryData) {
     materialType: e.materialType,
     location: e.location,
     distributedMaterials: e.distributedMaterials,
-    dateDonated: e.dateDonated instanceof Date ? e.dateDonated.toISOString().split('T')[0] : new Date(e.dateDonated as any).toISOString().split('T')[0],
+    dateDonated:
+      e.dateDonated instanceof Date
+        ? e.dateDonated.toISOString().split("T")[0]
+        : new Date(e.dateDonated as any).toISOString().split("T")[0],
     targetBeneficiaries: e.targetBeneficiaries,
     currentBeneficiaries: e.currentBeneficiaries,
     description: e.description || undefined,
@@ -70,6 +77,7 @@ export function eduStudentsFromBackend(e: any): educationStudentsEntryData {
     schoolLocation: e.schoolLocation,
     class: e.class,
     fundingYears: Number(e.fundingYears),
+    date: e.date ? new Date(e.date) : new Date(),
     description: e.description || "",
   };
 }
@@ -81,6 +89,10 @@ export function eduStudentsToBackend(e: educationStudentsEntryData) {
     schoolLocation: e.schoolLocation,
     class: e.class,
     fundingYears: e.fundingYears,
+    date:
+      e.date instanceof Date
+        ? e.date.toISOString().split("T")[0]
+        : new Date(e.date as any).toISOString().split("T")[0],
     description: e.description || undefined,
   };
 }
@@ -93,7 +105,8 @@ export function itTrainingFromBackend(e: any) {
     location: e.location,
     numPeople: Number(e.numPeople),
     materials: e.materials || "",
-    trainingDuration: e.trainingDuration != null ? Number(e.trainingDuration) : undefined,
+    trainingDuration:
+      e.trainingDuration != null ? Number(e.trainingDuration) : undefined,
     date: e.date ? new Date(e.date) : new Date(),
     description: e.description || "",
   };
@@ -105,7 +118,10 @@ export function itTrainingToBackend(e: any) {
     numPeople: e.numPeople,
     materials: e.materials || undefined,
     trainingDuration: e.trainingDuration,
-    date: e.date instanceof Date ? e.date.toISOString().split('T')[0] : new Date(e.date as any).toISOString().split('T')[0],
+    date:
+      e.date instanceof Date
+        ? e.date.toISOString().split("T")[0]
+        : new Date(e.date as any).toISOString().split("T")[0],
     description: e.description || undefined,
   };
 }
@@ -124,30 +140,39 @@ export function healthCentreToBackend(e: healthCentresEntryData) {
   return {
     healthCentreName: e.healthCentreName,
     location: e.location,
-    dateBuilt: e.dateBuilt instanceof Date ? e.dateBuilt.toISOString().split('T')[0] : new Date(e.dateBuilt as any).toISOString().split('T')[0],
+    dateBuilt:
+      e.dateBuilt instanceof Date
+        ? e.dateBuilt.toISOString().split("T")[0]
+        : new Date(e.dateBuilt as any).toISOString().split("T")[0],
     description: e.description || undefined,
   };
 }
 
 // Sports
 export function sportsFromBackend(e: any): sportsEntryData {
-  return {
+  // Handle different possible field names from backend
+  const sportName = e.sportName || e.name || e.sport_name || "";
+
+  const result = {
     id: String(e.id),
-    sportName: e.name || e.sportName,
-    location: e.location,
-    condition: e.condition,
+    sportName: sportName,
+    location: e.location || "",
+    condition: e.condition || "Good",
     dateBuilt: e.dateBuilt ? new Date(e.dateBuilt) : new Date(),
     description: e.description || "",
   };
+
+  return result;
 }
 export function sportsToBackend(e: sportsEntryData) {
   return {
-    // Send both to handle backend mismatch between DTO (name) and entity (sportName)
-    name: e.sportName,
     sportName: e.sportName,
     location: e.location,
     condition: e.condition,
-    dateBuilt: e.dateBuilt instanceof Date ? e.dateBuilt.toISOString().split('T')[0] : new Date(e.dateBuilt as any).toISOString().split('T')[0],
+    dateBuilt:
+      e.dateBuilt instanceof Date
+        ? e.dateBuilt.toISOString().split("T")[0]
+        : new Date(e.dateBuilt as any).toISOString().split("T")[0],
     description: e.description || undefined,
   };
 }
@@ -179,7 +204,10 @@ export function livestockToBackend(e: any) {
     transferredAnimals: e.transferredAnimals,
     currentlyOwned: e.currentlyOwned,
     // Backend expects 'dateDonated' as YYYY-MM-DD
-    dateDonated: e.dateDonated instanceof Date ? e.dateDonated.toISOString().split('T')[0] : new Date(e.dateDonated as any).toISOString().split('T')[0],
+    dateDonated:
+      e.dateDonated instanceof Date
+        ? e.dateDonated.toISOString().split("T")[0]
+        : new Date(e.dateDonated as any).toISOString().split("T")[0],
     targetBeneficiaries: e.targetBeneficiaries,
     currentBeneficiaries: e.currentBeneficiaries,
     description: e.description || undefined,
@@ -190,8 +218,8 @@ export function livestockToBackend(e: any) {
 export function officesFromBackend(e: any): officesEntryData {
   return {
     id: String(e.id),
-    officeName: e.officeName,
-    location: e.location,
+    officeName: e.officeName || "",
+    location: e.location || "",
     dateBuilt: e.dateBuilt ? new Date(e.dateBuilt) : new Date(),
     description: e.description || "",
   };
@@ -200,7 +228,12 @@ export function officesToBackend(e: officesEntryData) {
   return {
     officeName: e.officeName,
     location: e.location,
-    dateBuilt: e.dateBuilt instanceof Date ? e.dateBuilt.toISOString().split('T')[0] : new Date(e.dateBuilt as any).toISOString().split('T')[0],
+    dateBuilt:
+      e.dateBuilt instanceof Date
+        ? e.dateBuilt.toISOString().split("T")[0]
+        : e.dateBuilt
+        ? new Date(e.dateBuilt as any).toISOString().split("T")[0]
+        : new Date().toISOString().split("T")[0],
     description: e.description || undefined,
   };
 }
@@ -223,7 +256,10 @@ export function housingMaterialsToBackend(e: HousingMaterialsEntryData) {
     materialType: e.materialType,
     location: e.location,
     distributedMaterials: e.distributedMaterials,
-    dateDonated: e.dateDonated instanceof Date ? e.dateDonated.toISOString().split('T')[0] : new Date(e.dateDonated as any).toISOString().split('T')[0],
+    dateDonated:
+      e.dateDonated instanceof Date
+        ? e.dateDonated.toISOString().split("T")[0]
+        : new Date(e.dateDonated as any).toISOString().split("T")[0],
     targetBeneficiaries: e.targetBeneficiaries,
     currentBeneficiaries: e.currentBeneficiaries,
     description: e.description || undefined,
@@ -248,7 +284,10 @@ export function housingToiletsToBackend(e: HousingToiletsEntryData) {
     toiletType: e.toiletType,
     toiletsBuilt: e.toiletsBuilt,
     location: e.location,
-    dateDonated: e.dateDonated instanceof Date ? e.dateDonated.toISOString().split('T')[0] : new Date(e.dateDonated as any).toISOString().split('T')[0],
+    dateDonated:
+      e.dateDonated instanceof Date
+        ? e.dateDonated.toISOString().split("T")[0]
+        : new Date(e.dateDonated as any).toISOString().split("T")[0],
     targetBeneficiaries: e.targetBeneficiaries,
     currentBeneficiaries: e.currentBeneficiaries,
     description: e.description || undefined,
@@ -273,7 +312,10 @@ export function housingHousesToBackend(e: HousingHousesEntryData) {
     houseCategory: e.houseCategory,
     houseOwner: e.houseOwner,
     location: e.location,
-    dateBuilt: e.dateBuilt instanceof Date ? e.dateBuilt.toISOString().split('T')[0] : new Date(e.dateBuilt as any).toISOString().split('T')[0],
+    dateBuilt:
+      e.dateBuilt instanceof Date
+        ? e.dateBuilt.toISOString().split("T")[0]
+        : new Date(e.dateBuilt as any).toISOString().split("T")[0],
     houseCondition: e.houseCondition,
     materials: e.materials || undefined,
     description: e.description || undefined,
@@ -294,7 +336,10 @@ export function housingRepairsToBackend(e: HousingRepairmentsEntryData) {
   return {
     houseOwner: e.houseOwner,
     location: e.location,
-    dateRepaired: e.dateRepaired instanceof Date ? e.dateRepaired.toISOString().split('T')[0] : new Date(e.dateRepaired as any).toISOString().split('T')[0],
+    dateRepaired:
+      e.dateRepaired instanceof Date
+        ? e.dateRepaired.toISOString().split("T")[0]
+        : new Date(e.dateRepaired as any).toISOString().split("T")[0],
     description: e.description || undefined,
   };
 }
@@ -318,7 +363,10 @@ export function housingVillagesToBackend(e: HousingVillagesEntryData) {
     villageName: e.villageName,
     location: e.location,
     totalHouses: e.totalHouses,
-    dateBuilt: e.dateBuilt instanceof Date ? e.dateBuilt.toISOString().split('T')[0] : new Date(e.dateBuilt as any).toISOString().split('T')[0],
+    dateBuilt:
+      e.dateBuilt instanceof Date
+        ? e.dateBuilt.toISOString().split("T")[0]
+        : new Date(e.dateBuilt as any).toISOString().split("T")[0],
     goodCondition: e.goodCondition,
     badCondition: e.badCondition,
     badConditionDescription: e.badConditionDescription || undefined,
@@ -341,7 +389,10 @@ export function waterPumpsToBackend(e: waterPumpsEntryData) {
   return {
     pumpName: e.pumpName,
     location: e.location,
-    dateBuilt: e.dateBuilt instanceof Date ? e.dateBuilt.toISOString().split('T')[0] : new Date(e.dateBuilt as any).toISOString().split('T')[0],
+    dateBuilt:
+      e.dateBuilt instanceof Date
+        ? e.dateBuilt.toISOString().split("T")[0]
+        : new Date(e.dateBuilt as any).toISOString().split("T")[0],
     pumpCondition: e.pumpCondition,
     description: e.description || undefined,
   };
@@ -363,8 +414,42 @@ export function parkingToBackend(e: parkingEntryData) {
     parkingName: e.parkingName,
     carsSupported: e.carsSupported,
     location: e.location,
-    dateBuilt: e.dateBuilt instanceof Date ? e.dateBuilt.toISOString().split('T')[0] : new Date(e.dateBuilt as any).toISOString().split('T')[0],
+    dateBuilt:
+      e.dateBuilt instanceof Date
+        ? e.dateBuilt.toISOString().split("T")[0]
+        : new Date(e.dateBuilt as any).toISOString().split("T")[0],
     description: e.description || undefined,
   };
 }
 
+// Empowerment - Tailoring
+export function empowermentTailoringFromBackend(
+  e: any
+): empowermentTailoringEntryData {
+  return {
+    id: String(e.id),
+    tailoringCenter: e.tailoringCenter,
+    location: e.location,
+    people: Number(e.people),
+    date: e.date ? new Date(e.date) : new Date(),
+    trainingDuration: e.trainingDuration,
+    materials: e.materials,
+    description: e.description || "",
+  };
+}
+export function empowermentTailoringToBackend(
+  e: empowermentTailoringEntryData
+) {
+  return {
+    tailoringCenter: e.tailoringCenter,
+    location: e.location,
+    people: e.people,
+    date:
+      e.date instanceof Date
+        ? e.date.toISOString().split("T")[0]
+        : new Date(e.date as any).toISOString().split("T")[0],
+    trainingDuration: e.trainingDuration,
+    materials: e.materials,
+    description: e.description || undefined,
+  };
+}

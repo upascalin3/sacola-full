@@ -40,9 +40,10 @@ export function ConservationPageExample({
   onDeleteEntry,
   isLoading = false,
 }: ConservationPageExampleProps) {
+  const [isCreating, setIsCreating] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);     
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [filters] = useState<{ [key: string]: string | undefined }>({});
   const handleFiltersChange = (_: any) => {};
   const router = useRouter();
@@ -60,12 +61,17 @@ export function ConservationPageExample({
 
   const handleCreateEntry = async (data: ConservationData) => {
     if (onCreateEntry) {
-      await onCreateEntry(data);
-      addActivity({
-        icon: "success",
-        title: `New ${config.title} entry created`,
-        description: `${config.title} item added`,
-      });
+      setIsCreating(true);
+      try {
+        await onCreateEntry(data);
+        addActivity({
+          icon: "success",
+          title: `New ${config.title} entry created`,
+          description: `${config.title} item added`,
+        });
+      } finally {
+        setIsCreating(false);
+      }
     }
   };
 
@@ -90,7 +96,6 @@ export function ConservationPageExample({
       });
     }
   };
-
 
   const config = CONSERVATION_CONFIGS[conservationType];
 
@@ -221,11 +226,11 @@ export function ConservationPageExample({
         <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
           <div className="flex justify-between items-center">
             <div className="text-sm text-gray-600">
-              Showing <span className="font-semibold">{paginatedEntries.length}</span> of{" "}
-              <span className="font-semibold">{filteredEntries.length}</span> entries
-              {searchTerm.trim() && (
-                <span> matching "{searchTerm}"</span>
-              )}
+              Showing{" "}
+              <span className="font-semibold">{paginatedEntries.length}</span>{" "}
+              of <span className="font-semibold">{filteredEntries.length}</span>{" "}
+              entries
+              {searchTerm.trim() && <span> matching "{searchTerm}"</span>}
             </div>
             <div className="text-sm text-gray-600">
               Page <span className="font-semibold">{currentPage}</span> of{" "}
@@ -277,9 +282,12 @@ export function ConservationPageExample({
                         const raw = (entry as any)[field];
                         let display: string | number = raw as any;
                         if (raw instanceof Date) {
-                          display = raw.toISOString().split('T')[0];
-                        } else if (typeof raw === 'string' && raw.includes('T')) {
-                          display = raw.split('T')[0];
+                          display = raw.toISOString().split("T")[0];
+                        } else if (
+                          typeof raw === "string" &&
+                          raw.includes("T")
+                        ) {
+                          display = raw.split("T")[0];
                         }
                         return (
                           <td
@@ -394,6 +402,7 @@ export function ConservationPageExample({
           modalState.action === "create" ? handleCreateEntry : handleUpdateEntry
         }
         onDelete={handleDeleteEntry}
+        isLoading={isCreating}
       />
     </div>
   );

@@ -19,6 +19,7 @@ interface ConservationModalsProps {
   data?: ConservationData;
   onSubmit?: (data: ConservationData) => void;
   onDelete?: () => void;
+  isLoading?: boolean;
 }
 
 export function ConservationModals({
@@ -29,6 +30,7 @@ export function ConservationModals({
   data,
   onSubmit,
   onDelete,
+  isLoading = false,
 }: ConservationModalsProps) {
   const [visibleAction, setVisibleAction] = useState<ModalAction>(action);
   const [open, setOpen] = useState<boolean>(isOpen);
@@ -63,6 +65,7 @@ export function ConservationModals({
         onClose={close}
         onSubmit={handleSubmit}
         conservationType={conservationType}
+        isLoading={isLoading}
       />
 
       <UpdateEntryModal

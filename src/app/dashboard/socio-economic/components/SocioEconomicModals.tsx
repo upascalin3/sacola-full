@@ -36,7 +36,7 @@ export function SocioEconomicModals({
   useEffect(() => {
     setVisibleAction(action);
     setOpen(isOpen);
-  }, [action, isOpen]);
+  }, [action, isOpen, data]);
 
   const close = () => {
     setOpen(false);
@@ -71,6 +71,7 @@ export function SocioEconomicModals({
         onSubmit={handleSubmit}
         initialData={data ?? null}
         socioEconomicType={socioEconomicType}
+        key={`update-${(data as any)?.id || "new"}`}
       />
 
       <DetailsModal

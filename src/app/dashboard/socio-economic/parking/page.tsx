@@ -5,7 +5,10 @@ import SocioEconomicTabs from "../components/SocioEconomicTabs";
 import { SocioEconomicPageExample } from "../components/SocioEconomicPageExample";
 import { SocioEconomicApi } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import { parkingFromBackend, parkingToBackend } from "@/lib/socio-economic/adapters";
+import {
+  parkingFromBackend,
+  parkingToBackend,
+} from "@/lib/socio-economic/adapters";
 
 const initialEntries: any[] = [];
 
@@ -18,7 +21,10 @@ export default function ParkingPage() {
       if (!token) return;
       try {
         const res = await SocioEconomicApi.parking.list(token);
-        const items = (res as any)?.data?.items || (res as any)?.items || (Array.isArray(res) ? res : []);
+        const items =
+          (res as any)?.data?.items ||
+          (res as any)?.items ||
+          (Array.isArray(res) ? res : []);
         setEntries((items as any[]).map(parkingFromBackend));
       } catch {}
     };
@@ -27,7 +33,10 @@ export default function ParkingPage() {
 
   const handleCreate = async (data: any) => {
     if (!token) return;
-    const res = await SocioEconomicApi.parking.create(token, parkingToBackend(data));
+    const res = await SocioEconomicApi.parking.create(
+      token,
+      parkingToBackend(data)
+    );
     const created = (res as any)?.data || res;
     setEntries((prev) => [parkingFromBackend(created), ...prev]);
   };
@@ -35,9 +44,17 @@ export default function ParkingPage() {
   const handleUpdate = async (data: any) => {
     if (!token) return;
     const id = (data as any).id;
-    const res = await SocioEconomicApi.parking.update(token, String(id), parkingToBackend(data));
+    const res = await SocioEconomicApi.parking.update(
+      token,
+      String(id),
+      parkingToBackend(data)
+    );
     const updated = (res as any)?.data || res;
-    setEntries((prev) => prev.map((e: any) => (e.id === String(id) ? parkingFromBackend(updated) : e)));
+    setEntries((prev) =>
+      prev.map((e: any) =>
+        e.id === String(id) ? parkingFromBackend(updated) : e
+      )
+    );
   };
 
   const handleDelete = async (data: any) => {
@@ -48,7 +65,7 @@ export default function ParkingPage() {
   };
 
   return (
-    <div className="ml-64">
+    <div className="ml-64 overflow-hidden">
       <div className="max-w-7xl mx-auto">
         <SocioEconomicTabs />
         <div className="p-8">
@@ -64,4 +81,3 @@ export default function ParkingPage() {
     </div>
   );
 }
-

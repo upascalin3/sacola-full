@@ -6,7 +6,10 @@ import { SocioEconomicPageExample } from "./components/SocioEconomicPageExample"
 import type { LivestockEntryData } from "@/lib/socio-economic/socio-economic";
 import { SocioEconomicApi } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import { livestockFromBackend, livestockToBackend } from "@/lib/socio-economic/adapters";
+import {
+  livestockFromBackend,
+  livestockToBackend,
+} from "@/lib/socio-economic/adapters";
 
 const initialEntries: LivestockEntryData[] = [];
 
@@ -23,7 +26,9 @@ export default function SocioEconomicPage() {
       const payload = res as any;
       const items = Array.isArray(payload?.data)
         ? payload.data
-        : (payload?.data?.items || payload?.items || (Array.isArray(payload) ? payload : []));
+        : payload?.data?.items ||
+          payload?.items ||
+          (Array.isArray(payload) ? payload : []);
       setEntries((items as any[]).map(livestockFromBackend));
     } catch (err) {
       console.error("Failed to load Livestock entries", err);
@@ -39,13 +44,13 @@ export default function SocioEconomicPage() {
   useEffect(() => {
     const onFocus = () => loadData();
     const onVisibility = () => {
-      if (document.visibilityState === 'visible') loadData();
+      if (document.visibilityState === "visible") loadData();
     };
-    window.addEventListener('focus', onFocus);
-    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
     return () => {
-      window.removeEventListener('focus', onFocus);
-      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [token]);
 
@@ -61,7 +66,7 @@ export default function SocioEconomicPage() {
       console.error("Failed to create Livestock entry", err);
     }
   };
-  
+
   const handleUpdate = async (data: LivestockEntryData) => {
     if (!token) return;
     try {
@@ -71,9 +76,17 @@ export default function SocioEconomicPage() {
         console.error("Missing id for Livestock update; aborting");
         return;
       }
-      const res = await SocioEconomicApi.livestock.update(token, String(id), payload as any);
+      const res = await SocioEconomicApi.livestock.update(
+        token,
+        String(id),
+        payload as any
+      );
       const updated = (res as any)?.data || res;
-      setEntries((prev) => prev.map((item) => item.id === String(id) ? livestockFromBackend(updated) : item));
+      setEntries((prev) =>
+        prev.map((item) =>
+          item.id === String(id) ? livestockFromBackend(updated) : item
+        )
+      );
       await loadData();
     } catch (err) {
       console.error("Failed to update Livestock entry", err);
@@ -96,10 +109,9 @@ export default function SocioEconomicPage() {
     }
   };
 
-
   if (loading) {
     return (
-      <div className="ml-64">
+      <div className="ml-64 overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <SocioEconomicTabs />
           <div className="p-8 flex items-center justify-center">
@@ -111,7 +123,7 @@ export default function SocioEconomicPage() {
   }
 
   return (
-    <div className="ml-64">
+    <div className="ml-64 overflow-hidden">
       <div className="max-w-7xl mx-auto">
         <SocioEconomicTabs />
         <div className="p-8">

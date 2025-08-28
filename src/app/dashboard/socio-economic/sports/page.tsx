@@ -6,7 +6,10 @@ import { SocioEconomicPageExample } from "../components/SocioEconomicPageExample
 import type { sportsEntryData } from "@/lib/socio-economic/socio-economic";
 import { SocioEconomicApi } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import { sportsFromBackend, sportsToBackend } from "@/lib/socio-economic/adapters";
+import {
+  sportsFromBackend,
+  sportsToBackend,
+} from "@/lib/socio-economic/adapters";
 
 const initialEntries: sportsEntryData[] = [];
 
@@ -21,8 +24,12 @@ export default function SportsPage() {
       const payload = res as any;
       const items = Array.isArray(payload?.data)
         ? payload.data
-        : (payload?.data?.items || payload?.items || (Array.isArray(payload) ? payload : []));
-      setEntries((items as any[]).map(sportsFromBackend));
+        : payload?.data?.items ||
+          payload?.items ||
+          (Array.isArray(res) ? res : []);
+
+      const transformedEntries = (items as any[]).map(sportsFromBackend);
+      setEntries(transformedEntries);
     } catch (err) {
       console.error("Failed to load Sports entries", err);
     }
@@ -34,20 +41,23 @@ export default function SportsPage() {
 
   useEffect(() => {
     const onFocus = () => {
-      if (document.visibilityState === 'visible') loadData();
+      if (document.visibilityState === "visible") loadData();
     };
-    window.addEventListener('focus', onFocus);
-    document.addEventListener('visibilitychange', onFocus);
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
     return () => {
-      window.removeEventListener('focus', onFocus);
-      document.removeEventListener('visibilitychange', onFocus);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
     };
   }, [token]);
 
   const handleCreate = async (data: sportsEntryData) => {
     if (!token) return;
     try {
-      const res = await SocioEconomicApi.sports.create(token, sportsToBackend(data));
+      const res = await SocioEconomicApi.sports.create(
+        token,
+        sportsToBackend(data)
+      );
       const created = (res as any)?.data || res;
       setEntries((prev) => [sportsFromBackend(created), ...prev]);
       await loadData();
@@ -58,14 +68,20 @@ export default function SportsPage() {
 
   const handleUpdate = async (data: sportsEntryData) => {
     if (!token) return;
-    const id = String((data as any)?.id || "");  
+    const id = String((data as any)?.id || "");
     if (!id) {
       console.error("Missing id for Sports update; aborting");
       return;
     }
-    const res = await SocioEconomicApi.sports.update(token, String(id), sportsToBackend(data) as any);
+    const res = await SocioEconomicApi.sports.update(
+      token,
+      String(id),
+      sportsToBackend(data) as any
+    );
     const updated = (res as any)?.data || res;
-    setEntries((prev) => prev.map((e) => (e.id === String(id) ? sportsFromBackend(updated) : e)));
+    setEntries((prev) =>
+      prev.map((e) => (e.id === String(id) ? sportsFromBackend(updated) : e))
+    );
     await loadData();
   };
 
@@ -82,7 +98,7 @@ export default function SportsPage() {
   };
 
   return (
-    <div className="ml-64">
+    <div className="ml-64 overflow-hidden">
       <div className="max-w-7xl mx-auto">
         <SocioEconomicTabs />
         <div className="p-8">

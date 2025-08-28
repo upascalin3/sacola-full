@@ -5,7 +5,10 @@ import ConservationTabs from "../components/ConservationTabs";
 import { ConservationData, ConservationPageExample } from "../components";
 import { WaterTanksEntryData } from "@/lib/conservation/conservation";
 import { ConservationApi } from "@/lib/api";
-import { waterTanksFromBackend, waterTanksToBackend } from "@/lib/conservation/adapters";
+import {
+  waterTanksFromBackend,
+  waterTanksToBackend,
+} from "@/lib/conservation/adapters";
 import { useAuth } from "@/lib/auth-context";
 
 const initialWaterTankData: WaterTanksEntryData[] = [];
@@ -22,10 +25,21 @@ export default function WaterTanksPage() {
       try {
         setLoading(true);
         const res = await ConservationApi.waterTanks.list(token);
-        const items = (res as any)?.data?.items || (res as any)?.items || (Array.isArray(res) ? res : []);
-        setWaterTankData((items as any[]).map(waterTanksFromBackend));
+        const items =
+          (res as any)?.data?.items ||
+          (res as any)?.items ||
+          (Array.isArray(res) ? res : []);
+        const sortedItems = (items as any[])
+          .map(waterTanksFromBackend)
+          .sort((a, b) => {
+            // Sort by date donated in descending order (latest first)
+            const dateA = new Date(a.dateDonated);
+            const dateB = new Date(b.dateDonated);
+            return dateB.getTime() - dateA.getTime();
+          });
+        setWaterTankData(sortedItems);
       } catch (error) {
-        console.error('Failed to load water tank entries:', error);
+        console.error("Failed to load water tank entries:", error);
         throw error;
       } finally {
         setLoading(false);
@@ -38,11 +52,15 @@ export default function WaterTanksPage() {
     if (!token) return;
     try {
       const payload = data as unknown as WaterTanksEntryData;
-      const res = await ConservationApi.waterTanks.create(token, waterTanksToBackend(payload));
+      const res = await ConservationApi.waterTanks.create(
+        token,
+        waterTanksToBackend(payload)
+      );
       const created = (res as any)?.data || res;
-      setWaterTankData((prev) => [waterTanksFromBackend(created), ...prev]);
+      const newEntry = waterTanksFromBackend(created);
+      setWaterTankData((prev) => [newEntry, ...prev]);
     } catch (error) {
-      console.error('Failed to create water tank entry:', error);
+      console.error("Failed to create water tank entry:", error);
       throw error;
     }
   };
@@ -52,11 +70,19 @@ export default function WaterTanksPage() {
     try {
       const payload = data as unknown as WaterTanksEntryData;
       const id = (payload as any).id;
-      const res = await ConservationApi.waterTanks.update(token, String(id), waterTanksToBackend(payload));
+      const res = await ConservationApi.waterTanks.update(
+        token,
+        String(id),
+        waterTanksToBackend(payload)
+      );
       const updated = (res as any)?.data || res;
-      setWaterTankData((prev) => prev.map((e) => (e.id === String(id) ? waterTanksFromBackend(updated) : e)));
+      setWaterTankData((prev) =>
+        prev.map((e) =>
+          e.id === String(id) ? waterTanksFromBackend(updated) : e
+        )
+      );
     } catch (error) {
-      console.error('Failed to update water tank entry:', error);
+      console.error("Failed to update water tank entry:", error);
       throw error;
     }
   };
@@ -68,7 +94,7 @@ export default function WaterTanksPage() {
       await ConservationApi.waterTanks.remove(token, String(id));
       setWaterTankData((prev) => prev.filter((e) => e.id !== String(id)));
     } catch (error) {
-      console.error('Failed to delete water tank entry:', error);
+      console.error("Failed to delete water tank entry:", error);
       throw error;
     }
   };

@@ -6,7 +6,10 @@ import { ConservationPageExample } from "../components";
 import { buffaloWallEntryData } from "@/lib/conservation/conservation";
 import { ConservationData } from "@/lib/conservation/types";
 import { ConservationApi } from "@/lib/api";
-import { buffaloWallFromBackend, buffaloWallToBackend } from "@/lib/conservation/adapters";
+import {
+  buffaloWallFromBackend,
+  buffaloWallToBackend,
+} from "@/lib/conservation/adapters";
 import { useAuth } from "@/lib/auth-context";
 
 const initialBuffaloWallData: buffaloWallEntryData[] = [];
@@ -23,13 +26,23 @@ export default function BuffaloWallPage() {
     try {
       setLoading(true);
       const res = await ConservationApi.buffaloWall.list(token);
-      const items = (res as any)?.data?.items || (res as any)?.items || (Array.isArray(res) ? res : []);
-      setBuffaloWallData((items as any[]).map(buffaloWallFromBackend));
-      
-    } catch {}finally{
+      const items =
+        (res as any)?.data?.items ||
+        (res as any)?.items ||
+        (Array.isArray(res) ? res : []);
+      const sortedItems = (items as any[])
+        .map(buffaloWallFromBackend)
+        .sort((a, b) => {
+          // Sort by date repaired in descending order (latest first)
+          const dateA = new Date(a.dateRepaired);
+          const dateB = new Date(b.dateRepaired);
+          return dateB.getTime() - dateA.getTime();
+        });
+      setBuffaloWallData(sortedItems);
+    } catch {
+    } finally {
       setLoading(false);
     }
-    
   };
 
   useEffect(() => {
@@ -39,9 +52,13 @@ export default function BuffaloWallPage() {
   const handleCreate = async (data: ConservationData) => {
     if (!token) return;
     const payload = data as unknown as buffaloWallEntryData;
-    const res = await ConservationApi.buffaloWall.create(token, buffaloWallToBackend(payload));
+    const res = await ConservationApi.buffaloWall.create(
+      token,
+      buffaloWallToBackend(payload)
+    );
     const created = (res as any)?.data || res;
-    setBuffaloWallData((prev) => [buffaloWallFromBackend(created), ...prev]);
+    const newEntry = buffaloWallFromBackend(created);
+    setBuffaloWallData((prev) => [newEntry, ...prev]);
     await loadData();
   };
 
@@ -49,9 +66,17 @@ export default function BuffaloWallPage() {
     if (!token) return;
     const payload = data as unknown as buffaloWallEntryData;
     const id = (payload as any).id;
-    const res = await ConservationApi.buffaloWall.update(token, String(id), buffaloWallToBackend(payload));
+    const res = await ConservationApi.buffaloWall.update(
+      token,
+      String(id),
+      buffaloWallToBackend(payload)
+    );
     const updated = (res as any)?.data || res;
-    setBuffaloWallData((prev) => prev.map((e) => (e.id === String(id) ? buffaloWallFromBackend(updated) : e)));
+    setBuffaloWallData((prev) =>
+      prev.map((e) =>
+        e.id === String(id) ? buffaloWallFromBackend(updated) : e
+      )
+    );
     await loadData();
   };
 
@@ -63,7 +88,7 @@ export default function BuffaloWallPage() {
     await loadData();
   };
 
-    if (loading) {
+  if (loading) {
     return (
       <div className="ml-64">
         <div className="max-w-7xl mx-auto">

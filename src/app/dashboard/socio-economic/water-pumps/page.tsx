@@ -5,7 +5,10 @@ import { SocioEconomicTabs, SocioEconomicPageExample } from "../components";
 import { waterPumpsEntryData } from "@/lib/socio-economic/socio-economic";
 import { SocioEconomicApi } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import { waterPumpsFromBackend, waterPumpsToBackend } from "@/lib/socio-economic/adapters";
+import {
+  waterPumpsFromBackend,
+  waterPumpsToBackend,
+} from "@/lib/socio-economic/adapters";
 
 const initialWaterPumpsData: waterPumpsEntryData[] = [];
 
@@ -20,7 +23,10 @@ export default function WaterPumpsPage() {
       if (!token) return;
       try {
         const res = await SocioEconomicApi.waterPumps.list(token);
-        const items = (res as any)?.data?.items || (res as any)?.items || (Array.isArray(res) ? res : []);
+        const items =
+          (res as any)?.data?.items ||
+          (res as any)?.items ||
+          (Array.isArray(res) ? res : []);
         setWaterPumpsData((items as any[]).map(waterPumpsFromBackend));
       } catch {}
     };
@@ -29,7 +35,10 @@ export default function WaterPumpsPage() {
 
   const handleCreate = async (data: waterPumpsEntryData) => {
     if (!token) return;
-    const res = await SocioEconomicApi.waterPumps.create(token, waterPumpsToBackend(data));
+    const res = await SocioEconomicApi.waterPumps.create(
+      token,
+      waterPumpsToBackend(data)
+    );
     const created = (res as any)?.data || res;
     setWaterPumpsData((prev) => [waterPumpsFromBackend(created), ...prev]);
   };
@@ -37,9 +46,17 @@ export default function WaterPumpsPage() {
   const handleUpdate = async (data: waterPumpsEntryData) => {
     if (!token) return;
     const id = (data as any).id;
-    const res = await SocioEconomicApi.waterPumps.update(token, String(id), waterPumpsToBackend(data));
+    const res = await SocioEconomicApi.waterPumps.update(
+      token,
+      String(id),
+      waterPumpsToBackend(data)
+    );
     const updated = (res as any)?.data || res;
-    setWaterPumpsData((prev) => prev.map((e) => (e.id === String(id) ? waterPumpsFromBackend(updated) : e)));
+    setWaterPumpsData((prev) =>
+      prev.map((e) =>
+        e.id === String(id) ? waterPumpsFromBackend(updated) : e
+      )
+    );
   };
 
   const handleDelete = async (data: waterPumpsEntryData) => {
@@ -50,7 +67,7 @@ export default function WaterPumpsPage() {
   };
 
   return (
-    <div className="ml-64">
+    <div className="ml-64 overflow-hidden">
       <div className="max-w-7xl mx-auto">
         <SocioEconomicTabs />
         <div className="p-8">

@@ -11,7 +11,7 @@ export interface ActivityItem {
 }
 
 const STORAGE_KEY = "recentActivities";
-const MAX_ITEMS = 20;
+const MAX_ITEMS = 10;
 
 function readActivities(): ActivityItem[] {
   if (typeof window === "undefined") return [];

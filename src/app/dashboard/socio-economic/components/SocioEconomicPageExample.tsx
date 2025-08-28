@@ -89,15 +89,11 @@ export function SocioEconomicPageExample({
 
   const handleUpdateEntry = async (data: SocioEconomicData) => {
     if (onUpdateEntry) {
-      // Ensure id is preserved from the selected row (like conservation)
-      const ensured = { ...(data as any) };
-      const currentId = String(((modalState.data as any)?.id) || (ensured?.id ?? ""));
-      if (currentId) ensured.id = currentId;
-      await onUpdateEntry(ensured as SocioEconomicData);
+      await onUpdateEntry(data);
       addActivity({
         icon: "edit",
         title: `${config.title} entry updated`,
-        description: `Entry ${currentId || (data as any).id || ""} updated`,
+        description: `Entry ${(data as any).id ?? ""} updated`,
       });
     }
   };
@@ -118,13 +114,25 @@ export function SocioEconomicPageExample({
   // For socio-economic, show first 3 non-empty fields from each entry
   const getVisibleFields = (entry: SocioEconomicData) => {
     const entryData = entry as Record<string, any>;
-    const fields = Object.keys(entryData).filter(
+
+    // Always include the first field from config (e.g., sportName for sports)
+    const configFields = config.fields.map((f) => f.key);
+    const firstField = configFields[0];
+
+    // Get all non-empty fields
+    const nonEmptyFields = Object.keys(entryData).filter(
       (key) =>
         key !== "id" &&
         entryData[key] !== null &&
         entryData[key] !== undefined &&
         entryData[key] !== ""
     );
+
+    // Ensure first field is included even if empty
+    const fields = [
+      firstField,
+      ...nonEmptyFields.filter((f) => f !== firstField),
+    ];
     return fields.slice(0, 3);
   };
 
@@ -182,7 +190,15 @@ export function SocioEconomicPageExample({
     ) {
       openDetailsModal(found);
     }
-  }, [searchParams, entries, modalState.action, modalState.data, openDetailsModal, router, pathname]);
+  }, [
+    searchParams,
+    entries,
+    modalState.action,
+    modalState.data,
+    openDetailsModal,
+    router,
+    pathname,
+  ]);
 
   const handleOpenDetails = (entry: SocioEconomicData) => {
     const entryId = String((entry as any)?.id || "");
@@ -194,7 +210,11 @@ export function SocioEconomicPageExample({
   };
 
   const safeOpenUpdate = (entry: SocioEconomicData) => {
-    if (!String((entry as any)?.id || "")) return;
+    const entryId = String((entry as any)?.id || "");
+    if (!entryId) {
+      console.warn("Cannot open update modal: entry has no ID", entry);
+      return;
+    }
     openUpdateModal(entry);
   };
 
@@ -284,9 +304,12 @@ export function SocioEconomicPageExample({
                         const raw = (entry as any)[field];
                         let display: string | number = raw as any;
                         if (raw instanceof Date) {
-                          display = raw.toISOString().split('T')[0];
-                        } else if (typeof raw === 'string' && raw.includes('T')) {
-                          display = raw.split('T')[0];
+                          display = raw.toISOString().split("T")[0];
+                        } else if (
+                          typeof raw === "string" &&
+                          raw.includes("T")
+                        ) {
+                          display = raw.split("T")[0];
                         }
                         return (
                           <td

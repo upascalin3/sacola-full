@@ -5,7 +5,10 @@ import ConservationTabs from "../components/ConservationTabs";
 import { ConservationData, ConservationPageExample } from "../components";
 import { EUfundedEntryData } from "@/lib/conservation/conservation";
 import { ConservationApi } from "@/lib/api";
-import { euFundedFromBackend, euFundedToBackend } from "@/lib/conservation/adapters";
+import {
+  euFundedFromBackend,
+  euFundedToBackend,
+} from "@/lib/conservation/adapters";
 import { useAuth } from "@/lib/auth-context";
 
 const initialEUFundedData: EUfundedEntryData[] = [];
@@ -21,9 +24,21 @@ export default function EUProPage() {
     try {
       setLoading(true);
       const res = await ConservationApi.euFundedProjects.list(token);
-      const items = (res as any)?.data?.items || (res as any)?.items || (Array.isArray(res) ? res : []);
-      setEUFundedData((items as any[]).map(euFundedFromBackend));
-    } catch {} finally {
+      const items =
+        (res as any)?.data?.items ||
+        (res as any)?.items ||
+        (Array.isArray(res) ? res : []);
+      const sortedItems = (items as any[])
+        .map(euFundedFromBackend)
+        .sort((a, b) => {
+          // Sort by date planted in descending order (latest first)
+          const dateA = new Date(a.datePlanted);
+          const dateB = new Date(b.datePlanted);
+          return dateB.getTime() - dateA.getTime();
+        });
+      setEUFundedData(sortedItems);
+    } catch {
+    } finally {
       setLoading(false);
     }
   };
@@ -35,9 +50,13 @@ export default function EUProPage() {
   const handleCreate = async (data: ConservationData) => {
     if (!token) return;
     const payload = data as unknown as EUfundedEntryData;
-    const res = await ConservationApi.euFundedProjects.create(token, euFundedToBackend(payload));
+    const res = await ConservationApi.euFundedProjects.create(
+      token,
+      euFundedToBackend(payload)
+    );
     const created = (res as any)?.data || res;
-    setEUFundedData((prev) => [euFundedFromBackend(created), ...prev]);
+    const newEntry = euFundedFromBackend(created);
+    setEUFundedData((prev) => [newEntry, ...prev]);
     await loadData();
   };
 
@@ -45,9 +64,15 @@ export default function EUProPage() {
     if (!token) return;
     const payload = data as unknown as EUfundedEntryData;
     const id = (payload as any).id;
-    const res = await ConservationApi.euFundedProjects.update(token, String(id), euFundedToBackend(payload));
+    const res = await ConservationApi.euFundedProjects.update(
+      token,
+      String(id),
+      euFundedToBackend(payload)
+    );
     const updated = (res as any)?.data || res;
-    setEUFundedData((prev) => prev.map((e) => (e.id === String(id) ? euFundedFromBackend(updated) : e)));
+    setEUFundedData((prev) =>
+      prev.map((e) => (e.id === String(id) ? euFundedFromBackend(updated) : e))
+    );
     await loadData();
   };
 
