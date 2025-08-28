@@ -286,6 +286,12 @@ export default function SocioEconomicTabs() {
                 >
                   Supported Students
                 </DropdownLink>
+                <DropdownLink
+                  href="/dashboard/socio-economic/education/students/archived"
+                  onClick={closeDropdown}
+                >
+                  Archived Students
+                </DropdownLink>
               </DropdownMenu>
             </div>
 

@@ -68,9 +68,11 @@ export default function DetailsModal({
               displayValue = value.toLocaleString();
             } else if (field.type === "date") {
               if (value instanceof Date && !isNaN(value.getTime())) {
-                displayValue = value.toISOString().split('T')[0];
-              } else if (typeof value === 'string') {
-                displayValue = value.includes('T') ? value.split('T')[0] : value;
+                displayValue = value.toISOString().split("T")[0];
+              } else if (typeof value === "string") {
+                displayValue = value.includes("T")
+                  ? value.split("T")[0]
+                  : value;
               }
             }
 
@@ -88,6 +90,37 @@ export default function DetailsModal({
               </div>
             );
           })}
+
+          {socioEconomicType === "livestock" && (
+            <div>
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-[#088721] mb-1">
+                  Currently Owned
+                </label>
+                <p className="text-gray-900">
+                  {(() => {
+                    const distributed = Number(
+                      dataRecord.distributedAnimals || 0
+                    );
+                    const born = Number(dataRecord.born || 0);
+                    const sold = Number(dataRecord.soldAnimals || 0);
+                    const transferred = Number(
+                      dataRecord.transferredAnimals || 0
+                    );
+                    const deaths = Number(dataRecord.deaths || 0);
+                    const fromRecord = dataRecord.currentlyOwned;
+                    const computed =
+                      distributed + born - sold - transferred - deaths;
+                    const value =
+                      typeof fromRecord === "number" ? fromRecord : computed;
+                    return Number.isFinite(value)
+                      ? value.toLocaleString()
+                      : "N/A";
+                  })()}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Actions moved to table action column; no footer buttons here */}

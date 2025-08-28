@@ -503,45 +503,64 @@ export const SocioEconomicApi = {
   educationMaterials: createCrud<
     {
       materialType: string;
+      schoolName: string;
       location: string;
       distributedMaterials: number;
       dateDonated: string;
       targetBeneficiaries: number;
       currentBeneficiaries: number;
-      description?: string;
+      description: string;
     },
     {
       materialType: string;
+      schoolName: string;
       location: string;
       distributedMaterials: number;
       dateDonated: string;
       targetBeneficiaries: number;
       currentBeneficiaries: number;
-      description?: string;
+      description: string;
     }
   >("/api/socio-economic/education/materials"),
-  educationStudents: createCrud<
-    {
-      studentName: string;
-      studentLocation: string;
-      schoolName: string;
-      schoolLocation: string;
-      class: string;
-      fundingYears: number;
-      date: string;
-      description?: string;
-    },
-    {
-      studentName: string;
-      studentLocation: string;
-      schoolName: string;
-      schoolLocation: string;
-      class: string;
-      fundingYears: number;
-      date: string;
-      description?: string;
-    }
-  >("/api/socio-economic/education/students"),
+  educationStudents: {
+    ...createCrud<
+      {
+        studentName: string;
+        studentLocation: string;
+        schoolName: string;
+        schoolLocation: string;
+        class: string;
+        fundingYears: number;
+        date: string;
+        description?: string;
+      },
+      {
+        studentName: string;
+        studentLocation: string;
+        schoolName: string;
+        schoolLocation: string;
+        class: string;
+        fundingYears: number;
+        date: string;
+        description?: string;
+      }
+    >("/api/socio-economic/education/students"),
+    archived: (token: string) =>
+      apiFetch<ApiResponse<{ items?: any[] } | any[] | unknown>>(
+        "/api/socio-economic/education/students/archived",
+        { token }
+      ),
+    archive: (token: string, id: string) =>
+      apiFetch<ApiResponse<any>>(
+        `/api/socio-economic/education/students/${id}/archive`,
+        { method: "PUT", token }
+      ),
+    unarchive: (token: string, id: string) =>
+      apiFetch<ApiResponse<any>>(
+        `/api/socio-economic/education/students/${id}/unarchive`,
+        { method: "PUT", token }
+      ),
+  },
   itTraining: createCrud<
     {
       name: string;
@@ -597,6 +616,7 @@ export const SocioEconomicApi = {
       animalType: string;
       location: string;
       distributedAnimals: number;
+      born: number;
       deaths: number;
       soldAnimals: number;
       transferredAnimals: number;
@@ -604,12 +624,13 @@ export const SocioEconomicApi = {
       dateDonated: string;
       targetBeneficiaries: number;
       currentBeneficiaries: number;
-      description?: string;
+      description: string;
     },
     {
       animalType: string;
       location: string;
       distributedAnimals: number;
+      born: number;
       deaths: number;
       soldAnimals: number;
       transferredAnimals: number;
@@ -617,7 +638,7 @@ export const SocioEconomicApi = {
       dateDonated: string;
       targetBeneficiaries: number;
       currentBeneficiaries: number;
-      description?: string;
+      description: string;
     }
   >("/api/socio-economic/livestock"),
   offices: createCrud<
@@ -662,7 +683,7 @@ export const SocioEconomicApi = {
       dateDonated: string;
       targetBeneficiaries: number;
       currentBeneficiaries: number;
-      description?: string;
+      description: string;
     },
     {
       toiletType: string;
@@ -671,7 +692,7 @@ export const SocioEconomicApi = {
       dateDonated: string;
       targetBeneficiaries: number;
       currentBeneficiaries: number;
-      description?: string;
+      description: string;
     }
   >("/api/socio-economic/housing/toilets"),
   housingHouses: createCrud<
@@ -798,4 +819,16 @@ export const SocioEconomicApi = {
       description?: string;
     }
   >("/api/socio-economic/empowerment/tailoring"),
+  empowermentMicroFinance: createCrud<
+    {
+      name: string;
+      location: string;
+      description: string;
+    },
+    {
+      name: string;
+      location: string;
+      description: string;
+    }
+  >("/api/socio-economic/empowerment/microfinances"),
 };

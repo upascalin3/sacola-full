@@ -92,8 +92,8 @@ export const SOCIO_ECONOMIC_CONFIGS: Record<
       },
       { key: "deaths", label: "Deaths", type: "number", required: true },
       {
-        key: "currentlyOwned",
-        label: "Currently Owned",
+        key: "born",
+        label: "Born",
         type: "number",
         required: true,
       },
@@ -354,6 +354,7 @@ export const SOCIO_ECONOMIC_CONFIGS: Record<
         type: "text",
         required: true,
       },
+      { key: "schoolName", label: "School Name", type: "text", required: true },
       { key: "location", label: "Location", type: "text", required: true },
       {
         key: "distributedMaterials",

@@ -25,10 +25,12 @@ export default function HousingToiletsPage() {
 
     try {
       const res = await SocioEconomicApi.housingToilets.list(token);
-      const items =
-        (res as any)?.data?.items ||
-        (res as any)?.items ||
-        (Array.isArray(res) ? res : []);
+      const payload = res as any;
+      const items = Array.isArray(payload?.data)
+        ? payload.data
+        : payload?.data?.items ||
+          payload?.items ||
+          (Array.isArray(payload) ? payload : []);
       const loadedEntries = (items as any[]).map(housingToiletsFromBackend);
       setEntries(loadedEntries);
     } catch (err) {

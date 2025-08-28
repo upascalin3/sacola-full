@@ -87,6 +87,7 @@ interface empowermentMicroFinanceEntryData {
 interface educationMaterialsEntryData {
   id: string;
   materialType: string;
+  schoolName: string;
   location: string;
   distributedMaterials: number;
   dateDonated: Date;

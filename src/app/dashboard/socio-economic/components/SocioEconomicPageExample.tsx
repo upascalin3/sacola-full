@@ -133,6 +133,17 @@ export function SocioEconomicPageExample({
       firstField,
       ...nonEmptyFields.filter((f) => f !== firstField),
     ];
+
+    // Ensure computed fields are visible for specific types
+    if (socioEconomicType === "livestock") {
+      // Insert 'currentlyOwned' near the front if present on the entry
+      if ("currentlyOwned" in entryData) {
+        const idx = fields.indexOf("currentlyOwned");
+        if (idx === -1) {
+          fields.splice(1, 0, "currentlyOwned");
+        }
+      }
+    }
     return fields.slice(0, 3);
   };
 
@@ -352,7 +363,11 @@ export function SocioEconomicPageExample({
                               title="Delete entry"
                               variant="ghost"
                               size="sm"
-                              onClick={() => safeOpenDelete(entry)}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                safeOpenDelete(entry);
+                              }}
                               disabled={!Boolean((entry as any)?.id)}
                               className="flex items-center text-red-600 hover:text-red-700 p-0 h-auto"
                             >
@@ -365,7 +380,11 @@ export function SocioEconomicPageExample({
                               title="Archive entry"
                               variant="ghost"
                               size="sm"
-                              onClick={() => onArchiveEntry?.(entry)}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                onArchiveEntry?.(entry);
+                              }}
                               className="flex items-center text-amber-600 hover:text-amber-700 p-0 h-auto"
                             >
                               <ArchiveIcon size={16} />
@@ -377,7 +396,11 @@ export function SocioEconomicPageExample({
                               title="Unarchive entry"
                               variant="ghost"
                               size="sm"
-                              onClick={() => onUnarchiveEntry?.(entry)}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                onUnarchiveEntry?.(entry);
+                              }}
                               className="flex items-center text-amber-600 hover:text-amber-700 p-0 h-auto"
                             >
                               <ArchiveX size={16} />

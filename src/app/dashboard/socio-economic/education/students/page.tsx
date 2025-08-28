@@ -1,9 +1,15 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { SocioEconomicTabs, SocioEconomicPageExample } from "../../components";
+import {
+  SocioEconomicTabs,
+  SocioEconomicPageExample,
+  ArchiveConfirmationModal,
+} from "../../components";
 import type { educationStudentsEntryData } from "@/lib/socio-economic/socio-economic";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Archive } from "lucide-react";
 import { SocioEconomicApi } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import {
@@ -11,42 +17,7 @@ import {
   eduStudentsToBackend,
 } from "@/lib/socio-economic/adapters";
 
-const ACTIVE_KEY = "educationStudentsActive";
-const ARCHIVE_KEY = "educationStudentsArchive";
-
-function loadActive(): educationStudentsEntryData[] {
-  try {
-    const raw =
-      typeof window !== "undefined" ? localStorage.getItem(ACTIVE_KEY) : null;
-    if (!raw) return [];
-    return JSON.parse(raw) as educationStudentsEntryData[];
-  } catch {
-    return [];
-  }
-}
-
-function saveActive(data: educationStudentsEntryData[]) {
-  try {
-    localStorage.setItem(ACTIVE_KEY, JSON.stringify(data));
-  } catch {}
-}
-
-function loadArchive(): educationStudentsEntryData[] {
-  try {
-    const raw =
-      typeof window !== "undefined" ? localStorage.getItem(ARCHIVE_KEY) : null;
-    if (!raw) return [];
-    return JSON.parse(raw) as educationStudentsEntryData[];
-  } catch {
-    return [];
-  }
-}
-
-function saveArchive(data: educationStudentsEntryData[]) {
-  try {
-    localStorage.setItem(ARCHIVE_KEY, JSON.stringify(data));
-  } catch {}
-}
+// Backend-managed archive; localStorage helpers removed
 
 const initialEntries: educationStudentsEntryData[] = [];
 
@@ -54,6 +25,9 @@ export default function EducationStudentsPage() {
   const [entries, setEntries] =
     useState<educationStudentsEntryData[]>(initialEntries);
   const [loading, setLoading] = useState(false);
+  const [showArchiveModal, setShowArchiveModal] = useState(false);
+  const [selectedEntry, setSelectedEntry] =
+    useState<educationStudentsEntryData | null>(null);
   const { token } = useAuth();
 
   const loadData = async () => {
@@ -134,28 +108,53 @@ export default function EducationStudentsPage() {
     }
   };
 
-  const handleDelete = async (data: any) => {
+  const handleDelete = async (entry: educationStudentsEntryData) => {
     if (!token) return;
     try {
-      const id = String((data as any)?.id || "");
-      if (!id) {
-        console.error("Missing id for Education Students delete; aborting");
-        return;
-      }
-      await SocioEconomicApi.educationStudents.remove(token, String(id));
-      setEntries((prev) => prev.filter((item) => item.id !== String(id)));
-      await loadData();
+      console.log("Deleting student:", entry.id);
+      await SocioEconomicApi.educationStudents.remove(token, String(entry.id));
+      console.log("Student deleted successfully");
+      // Remove the deleted student from the current list instead of reloading
+      setEntries((prev) => prev.filter((item) => item.id !== entry.id));
     } catch (err) {
-      console.error("Failed to delete Education Students entry", err);
+      console.error("Failed to delete Education Student", err);
     }
   };
 
-  const handleArchive = (entry: educationStudentsEntryData) => {
-    const nextActive = entries.filter((e) => e.id !== entry.id);
-    setEntries(nextActive);
-    saveActive(nextActive);
-    const archive = loadArchive();
-    saveArchive([...archive, entry]);
+  const handleArchive = async (entry: educationStudentsEntryData) => {
+    if (!token) return;
+    try {
+      console.log("Archiving student:", entry.id, entry);
+      const response = await SocioEconomicApi.educationStudents.archive(
+        token,
+        String(entry.id)
+      );
+      console.log("Archive API response:", response);
+      console.log("Student archived successfully");
+      // Remove the archived student from the current list instead of reloading
+      setEntries((prev) => prev.filter((item) => item.id !== entry.id));
+
+      // Reload data after a short delay to ensure backend has processed the archive
+      setTimeout(() => {
+        loadData();
+      }, 1000);
+    } catch (err) {
+      console.error("Failed to archive Education Student", err);
+      // Don't remove from list if archive failed
+    }
+  };
+
+  const openArchiveModal = (entry: educationStudentsEntryData) => {
+    setSelectedEntry(entry);
+    setShowArchiveModal(true);
+  };
+
+  const confirmArchive = () => {
+    if (selectedEntry) {
+      handleArchive(selectedEntry);
+    }
+    setShowArchiveModal(false);
+    setSelectedEntry(null);
   };
 
   if (loading) {
@@ -176,22 +175,41 @@ export default function EducationStudentsPage() {
       <div className="max-w-7xl mx-auto">
         <SocioEconomicTabs />
         <div className="p-8">
+          <div className="mb-6">
+            <Link href="/dashboard/socio-economic/education/students/archived">
+              <Button variant="outline" className="flex items-center gap-2">
+                <Archive size={16} />
+                View Archived Students
+              </Button>
+            </Link>
+          </div>
           <SocioEconomicPageExample
             socioEconomicType="educationStudents"
             entries={entries}
             onCreateEntry={handleCreate}
             onUpdateEntry={handleUpdate}
-            onDeleteEntry={handleDelete}
             showAddButton={true}
             enableEdit={true}
             enableDelete={true}
             showArchive={true}
             onArchiveEntry={(d) =>
-              handleArchive(d as educationStudentsEntryData)
+              openArchiveModal(d as educationStudentsEntryData)
             }
+            onDeleteEntry={(d) => handleDelete(d as educationStudentsEntryData)}
           />
         </div>
       </div>
+
+      <ArchiveConfirmationModal
+        isOpen={showArchiveModal}
+        onClose={() => {
+          setShowArchiveModal(false);
+          setSelectedEntry(null);
+        }}
+        onConfirm={confirmArchive}
+        socioEconomicType="educationStudents"
+        itemName={selectedEntry?.studentName}
+      />
     </div>
   );
 }

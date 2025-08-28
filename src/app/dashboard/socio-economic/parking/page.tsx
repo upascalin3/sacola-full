@@ -72,9 +72,9 @@ export default function ParkingPage() {
           <SocioEconomicPageExample
             socioEconomicType="parking"
             entries={entries as any}
-            onCreateEntry={handleCreate}
-            onUpdateEntry={handleUpdate}
-            onDeleteEntry={handleDelete}
+            onCreateEntry={handleCreate as any}
+            onUpdateEntry={handleUpdate as any}
+            onDeleteEntry={handleDelete as any}
           />
         </div>
       </div>

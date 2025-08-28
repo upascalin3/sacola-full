@@ -13,6 +13,7 @@ import {
   waterPumpsEntryData,
   parkingEntryData,
   empowermentTailoringEntryData,
+  empowermentMicroFinanceEntryData,
 } from "@/lib/socio-economic/socio-economic";
 
 // Education - Infrastructures
@@ -44,6 +45,7 @@ export function eduMaterialsFromBackend(e: any): educationMaterialsEntryData {
   return {
     id: String(e.id),
     materialType: e.materialType,
+    schoolName: e.schoolName,
     location: e.location,
     distributedMaterials: Number(e.distributedMaterials),
     dateDonated: e.dateDonated ? new Date(e.dateDonated) : new Date(),
@@ -55,6 +57,7 @@ export function eduMaterialsFromBackend(e: any): educationMaterialsEntryData {
 export function eduMaterialsToBackend(e: educationMaterialsEntryData) {
   return {
     materialType: e.materialType,
+    schoolName: e.schoolName,
     location: e.location,
     distributedMaterials: e.distributedMaterials,
     dateDonated:
@@ -63,7 +66,7 @@ export function eduMaterialsToBackend(e: educationMaterialsEntryData) {
         : new Date(e.dateDonated as any).toISOString().split("T")[0],
     targetBeneficiaries: e.targetBeneficiaries,
     currentBeneficiaries: e.currentBeneficiaries,
-    description: e.description || undefined,
+    description: e.description || "",
   };
 }
 
@@ -184,10 +187,19 @@ export function livestockFromBackend(e: any) {
     animalType: e.animalType,
     location: e.location,
     distributedAnimals: Number(e.distributedAnimals),
+    born: Number(e.born ?? 0),
     deaths: Number(e.deaths),
     soldAnimals: Number(e.soldAnimals),
     transferredAnimals: Number(e.transferredAnimals),
-    currentlyOwned: Number(e.currentlyOwned),
+    currentlyOwned: Number(
+      e.currentlyOwned != null
+        ? e.currentlyOwned
+        : Number(e.distributedAnimals || 0) +
+            Number(e.born || 0) -
+            Number(e.soldAnimals || 0) -
+            Number(e.transferredAnimals || 0) -
+            Number(e.deaths || 0)
+    ),
     dateDonated: e.dateDonated ? new Date(e.dateDonated) : new Date(),
     targetBeneficiaries: Number(e.targetBeneficiaries),
     currentBeneficiaries: Number(e.currentBeneficiaries),
@@ -199,10 +211,17 @@ export function livestockToBackend(e: any) {
     animalType: e.animalType,
     location: e.location,
     distributedAnimals: e.distributedAnimals,
+    born: e.born ?? 0,
     deaths: e.deaths,
     soldAnimals: e.soldAnimals,
     transferredAnimals: e.transferredAnimals,
-    currentlyOwned: e.currentlyOwned,
+    // compute currentlyOwned instead of trusting input
+    currentlyOwned:
+      Number(e.distributedAnimals || 0) +
+      Number(e.born || 0) -
+      Number(e.soldAnimals || 0) -
+      Number(e.transferredAnimals || 0) -
+      Number(e.deaths || 0),
     // Backend expects 'dateDonated' as YYYY-MM-DD
     dateDonated:
       e.dateDonated instanceof Date
@@ -210,7 +229,7 @@ export function livestockToBackend(e: any) {
         : new Date(e.dateDonated as any).toISOString().split("T")[0],
     targetBeneficiaries: e.targetBeneficiaries,
     currentBeneficiaries: e.currentBeneficiaries,
-    description: e.description || undefined,
+    description: e.description || "",
   };
 }
 
@@ -290,7 +309,7 @@ export function housingToiletsToBackend(e: HousingToiletsEntryData) {
         : new Date(e.dateDonated as any).toISOString().split("T")[0],
     targetBeneficiaries: e.targetBeneficiaries,
     currentBeneficiaries: e.currentBeneficiaries,
-    description: e.description || undefined,
+    description: e.description || "",
   };
 }
 
@@ -451,5 +470,26 @@ export function empowermentTailoringToBackend(
     trainingDuration: e.trainingDuration,
     materials: e.materials,
     description: e.description || undefined,
+  };
+}
+
+// Empowerment - Micro Finance
+export function empowermentMicroFinanceFromBackend(
+  e: any
+): empowermentMicroFinanceEntryData {
+  return {
+    id: String(e.id),
+    name: e.name,
+    location: e.location,
+    description: e.description || "",
+  };
+}
+export function empowermentMicroFinanceToBackend(
+  e: empowermentMicroFinanceEntryData
+) {
+  return {
+    name: e.name,
+    location: e.location,
+    description: e.description || "",
   };
 }

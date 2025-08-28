@@ -74,9 +74,9 @@ export default function WaterPumpsPage() {
           <SocioEconomicPageExample
             socioEconomicType="waterPumps"
             entries={waterPumpsData}
-            onCreateEntry={handleCreate}
-            onUpdateEntry={handleUpdate}
-            onDeleteEntry={handleDelete}
+            onCreateEntry={handleCreate as any}
+            onUpdateEntry={handleUpdate as any}
+            onDeleteEntry={handleDelete as any}
           />
         </div>
       </div>
