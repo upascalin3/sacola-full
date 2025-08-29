@@ -16,6 +16,7 @@ import {
   parkingEntryData,
   waterPumpsEntryData,
   itTrainingEntryData,
+  workersEntryData,
 } from "@/lib/socio-economic/socio-economic";
 
 // Union type for all socio-economic interfaces
@@ -237,12 +238,7 @@ export const SOCIO_ECONOMIC_CONFIGS: Record<
         required: true,
       },
       { key: "location", label: "Location", type: "text", required: true },
-      {
-        key: "totalHouses",
-        label: "Total Houses",
-        type: "number",
-        required: true,
-      },
+      // totalHouses is computed as goodCondition + badCondition; no direct input
       { key: "dateBuilt", label: "Date Built", type: "date", required: true },
       {
         key: "goodCondition",
@@ -321,7 +317,7 @@ export const SOCIO_ECONOMIC_CONFIGS: Record<
       { key: "date", label: "Date", type: "date", required: true },
       {
         key: "trainingDuration",
-        label: "Training Duration",
+        label: "Training Duration (months)",
         type: "number",
         required: true,
       },

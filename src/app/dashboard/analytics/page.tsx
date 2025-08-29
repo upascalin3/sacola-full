@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import AnalyticsPageContent from "../../components/AnalyticsPageContent";
+import AnalyticsPageContent from "../components/AnalyticsPageContent";
 
 export const metadata: Metadata = {
   title: "Analytics | SACOLA",

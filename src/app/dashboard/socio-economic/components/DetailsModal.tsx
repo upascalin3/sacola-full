@@ -91,6 +91,26 @@ export default function DetailsModal({
             );
           })}
 
+          {socioEconomicType === "housingVillages" && (
+            <div>
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-[#088721] mb-1">
+                  Total Houses
+                </label>
+                <p className="text-gray-900">
+                  {(() => {
+                    const good = Number(dataRecord.goodCondition || 0);
+                    const bad = Number(dataRecord.badCondition || 0);
+                    const total = good + bad;
+                    return Number.isFinite(total)
+                      ? total.toLocaleString()
+                      : "N/A";
+                  })()}
+                </p>
+              </div>
+            </div>
+          )}
+
           {socioEconomicType === "livestock" && (
             <div>
               <div className="space-y-1">

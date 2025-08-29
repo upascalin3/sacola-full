@@ -369,7 +369,10 @@ export function housingVillagesFromBackend(e: any): HousingVillagesEntryData {
     id: String(e.id),
     villageName: e.villageName,
     location: e.location,
-    totalHouses: Number(e.totalHouses),
+    totalHouses:
+      e.totalHouses != null
+        ? Number(e.totalHouses)
+        : Number(e.goodCondition || 0) + Number(e.badCondition || 0),
     dateBuilt: e.dateBuilt ? new Date(e.dateBuilt) : new Date(),
     goodCondition: Number(e.goodCondition),
     badCondition: Number(e.badCondition),
@@ -381,7 +384,8 @@ export function housingVillagesToBackend(e: HousingVillagesEntryData) {
   return {
     villageName: e.villageName,
     location: e.location,
-    totalHouses: e.totalHouses,
+    // compute totalHouses on write to backend
+    totalHouses: Number(e.goodCondition || 0) + Number(e.badCondition || 0),
     dateBuilt:
       e.dateBuilt instanceof Date
         ? e.dateBuilt.toISOString().split("T")[0]

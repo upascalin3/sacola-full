@@ -7,7 +7,7 @@ import Link from "next/link";
 
 export default function OtpPageContent() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const [counter, setCounter] = useState(300); // 5 minutes in seconds
+  const [counter, setCounter] = useState(600); // 10 minutes in seconds
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
@@ -96,7 +96,7 @@ export default function OtpPageContent() {
       setIsSubmitting(true);
       setError("");
       // Reset timer and OTP input
-      setCounter(300);
+      setCounter(600);
       setOtp(["", "", "", "", "", ""]);
       // Focus first input
       inputRefs.current[0]?.focus();
