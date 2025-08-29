@@ -493,3 +493,25 @@ export function empowermentMicroFinanceToBackend(
     description: e.description || "",
   };
 }
+
+// Workers
+export function workersFromBackend(e: any) {
+  return {
+    id: String(e.id),
+    name: e.name,
+    role: e.role,
+    category: e.category as "full-time" | "part-time" | "volunteers",
+    dateEmployed: e.dateEmployed ? new Date(e.dateEmployed) : new Date(),
+  };
+}
+export function workersToBackend(e: any) {
+  return {
+    name: e.name,
+    role: e.role,
+    category: e.category,
+    dateEmployed:
+      e.dateEmployed instanceof Date
+        ? e.dateEmployed.toISOString().split("T")[0]
+        : new Date(e.dateEmployed as any).toISOString().split("T")[0],
+  };
+}

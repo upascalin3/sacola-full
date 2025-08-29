@@ -2,14 +2,14 @@
 import React, { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { LayoutGrid, Leaf, Users, FileText, User, LogOut, Clock } from "lucide-react";
+import { LayoutGrid, Leaf, Users, BarChart2, User, LogOut, Clock } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 
 const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutGrid },
   { label: "Conservation", href: "/dashboard/conservation", icon: Leaf },
   { label: "Socio-Economic", href: "/dashboard/socio-economic", icon: Users },
-  { label: "Reports", href: "/dashboard/reports", icon: FileText },
+  { label: "Analytics", href: "/dashboard/reports/analytics", icon: BarChart2 },
   { label: "Profile", href: "/dashboard/profile", icon: User },
 ];
 

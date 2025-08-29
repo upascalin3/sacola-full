@@ -9,6 +9,7 @@ interface AuthContextType {
   token: string | null;
   userEmail: string | null;
   isOtpPending: boolean;
+  isAuthInitialized: boolean;
   startLogin: (email: string, password: string) => Promise<void>;
   verifyOtpAndLogin: (email: string, otp: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -24,6 +25,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isOtpPending, setIsOtpPending] = useState(false);
+  const [isAuthInitialized, setIsAuthInitialized] = useState(false);
   const router = useRouter();
   const logoutTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const warningTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -72,6 +74,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem("isOtpPending");
       localStorage.removeItem("loginTime");
     }
+    // Mark auth check complete so routes can decide accurately
+    setIsAuthInitialized(true);
   }, []);
 
   // Cleanup timeout on unmount
@@ -240,38 +244,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Function to reset logout timer on user activity
-  const resetLogoutTimer = () => {
-    if (isAuthenticated && token) {
-      const currentTime = Date.now();
-      localStorage.setItem("loginTime", currentTime.toString());
-      setupAutoLogout(currentTime);
-    }
-  };
-
-  // Set up user activity listeners
-  useEffect(() => {
-    if (isAuthenticated) {
-      const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
-      
-      const handleUserActivity = () => {
-        resetLogoutTimer();
-      };
-
-      events.forEach(event => {
-        document.addEventListener(event, handleUserActivity, true);
-      });
-
-      return () => {
-        events.forEach(event => {
-          document.removeEventListener(event, handleUserActivity, true);
-        });
-      };
-    }
-  }, [isAuthenticated, token]);
+  // Fixed session window (10 hours from login). No activity-based extension.
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, token, userEmail, isOtpPending, startLogin, verifyOtpAndLogin, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, token, userEmail, isOtpPending, isAuthInitialized, startLogin, verifyOtpAndLogin, logout }}>
       {children}
     </AuthContext.Provider>
   );

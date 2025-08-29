@@ -36,7 +36,8 @@ export type SocioEconomicData =
   | officesEntryData
   | sportsEntryData
   | parkingEntryData
-  | waterPumpsEntryData;
+  | waterPumpsEntryData
+  | workersEntryData;
 
 // Modal action types
 export type ModalAction = "create" | "update" | "delete" | "details";
@@ -59,7 +60,8 @@ export type SocioEconomicType =
   | "offices"
   | "sports"
   | "parking"
-  | "waterPumps";
+  | "waterPumps"
+  | "workers";
 
 // Field configuration for dynamic form generation
 export interface FieldConfig {
@@ -602,6 +604,26 @@ export const SOCIO_ECONOMIC_CONFIGS: Record<
         key: "description",
         label: "Description",
         type: "textarea",
+        required: true,
+      },
+    ],
+  },
+  workers: {
+    title: "Workers",
+    fields: [
+      { key: "name", label: "Name", type: "text", required: true },
+      { key: "role", label: "Role", type: "text", required: true },
+      {
+        key: "category",
+        label: "Category",
+        type: "select",
+        required: true,
+        options: ["full-time", "part-time", "volunteers"],
+      },
+      {
+        key: "dateEmployed",
+        label: "Date Employed",
+        type: "date",
         required: true,
       },
     ],

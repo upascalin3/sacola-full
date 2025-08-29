@@ -263,17 +263,59 @@ function createCrud<
 
 // Reports
 export const ReportsApi = {
-  generate: (
+  generate: async (
     token: string,
     body: {
-      projectCategory: "Conservation" | "Socio-Economic";
+      projectCategory: "conservation" | "socio-economic";
       projectType: string;
-      reportType: "Annual" | "Monthly" | "Custom";
+      reportType: "annual" | "monthly" | "custom";
       dateRangeStart: string;
       dateRangeEnd: string;
     }
+  ) => {
+    try {
+      // Try lowercase enums and dateRangeStart/dateRangeEnd first
+      return await apiFetch<ApiResponse<unknown>>("/api/reports/generate", {
+        method: "POST",
+        token,
+        body,
+      });
+    } catch (err: any) {
+      const msg = String(err?.message || "");
+      const isSchemaError =
+        msg.includes("should not exist") ||
+        msg.includes("must be one of the following values");
+      if (!isSchemaError) throw err;
+
+      // Retry with alternative schema: capitalized enums + startDate/endDate
+      const altBody = {
+        projectCategory:
+          body.projectCategory === "conservation" ? "Conservation" : "Socio-Economic",
+        projectType: body.projectType,
+        reportType:
+          body.reportType === "monthly"
+            ? "Monthly"
+            : body.reportType === "annual"
+            ? "Annual"
+            : "Custom",
+        startDate: body.dateRangeStart,
+        endDate: body.dateRangeEnd,
+      } as any;
+
+      return await apiFetch<ApiResponse<unknown>>("/api/reports/generate", {
+        method: "POST",
+        token,
+        body: altBody,
+      });
+    }
+  },
+  summary: (
+    token: string,
+    body:
+      | { periodType: "monthly"; month: number; year: number }
+      | { periodType: "yearly"; year: number }
   ) =>
-    apiFetch<ApiResponse<unknown>>("/api/reports/generate", {
+    apiFetch<ApiResponse<unknown>>("/api/reports/summary", {
       method: "POST",
       token,
       body,
@@ -831,4 +873,18 @@ export const SocioEconomicApi = {
       description: string;
     }
   >("/api/socio-economic/empowerment/microfinances"),
+  workers: createCrud<
+    {
+      name: string;
+      role: string;
+      category: "full-time" | "part-time" | "volunteers";
+      dateEmployed: string;
+    },
+    {
+      name: string;
+      role: string;
+      category: "full-time" | "part-time" | "volunteers";
+      dateEmployed: string;
+    }
+  >("/api/socio-economic/workers"),
 };

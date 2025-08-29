@@ -1,10 +1,10 @@
-import ReportsPageContent from "../components/ReportsPageContent";
+import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "Reports | SACOLA",
-  description: "Generate and analyze reports.",
+  title: "Analytics | SACOLA",
+  description: "Project analytics.",
 };
 
 export default function Page() {
-  return <ReportsPageContent />;
+  redirect("/dashboard/reports/analytics");
 }

@@ -40,7 +40,7 @@ const projectCategories = [
 ];
 
 type ProjectCategory = "conservation" | "socio-economic";
-type ReportType = "monthly" | "annual";
+type ReportType = "monthly" | "annual" | "custom";
 
 interface ProjectOption {
   label: string;
@@ -197,13 +197,41 @@ export default function ReportsPageContent() {
       reportEndDate = `${selectedYear}-12-31`;
     }
 
+    // Validation rules
+    try {
+      if (reportType === "monthly") {
+        if (!reportStartDate || !reportEndDate) throw new Error("Select a start and end date");
+        const s = new Date(reportStartDate);
+        const e = new Date(reportEndDate);
+        if (s.getFullYear() !== e.getFullYear() || s.getMonth() !== e.getMonth()) {
+          throw new Error("Monthly reports must be within the same month");
+        }
+      }
+      if (reportType === "annual") {
+        if (!reportStartDate || !reportEndDate) throw new Error("Year is required");
+        if (!reportStartDate.endsWith("-01-01") || !reportEndDate.endsWith("-12-31")) {
+          throw new Error("Annual reports must span the full year");
+        }
+        const sYear = reportStartDate.slice(0, 4);
+        const eYear = reportEndDate.slice(0, 4);
+        if (sYear !== eYear) throw new Error("Annual report dates must be same year");
+      }
+      if (reportType === "custom") {
+        if (!reportStartDate || !reportEndDate) throw new Error("Select a start and end date");
+      }
+    } catch (err) {
+      console.error("Validation error:", err);
+      setIsGenerating(false);
+      return;
+    }
+
     // Call backend to generate report with explicit frontend-provided dates
     try {
       if (!token) throw new Error("Not authenticated");
       const body = {
-        projectCategory: selectedCategory === "conservation" ? ("Conservation" as const) : ("Socio-Economic" as const),
+        projectCategory: selectedCategory as "conservation" | "socio-economic",
         projectType: selectedProject,
-        reportType: reportType === "annual" ? ("Annual" as const) : (reportType === "monthly" ? ("Monthly" as const) : ("Custom" as const)),
+        reportType: reportType as "monthly" | "annual" | "custom",
         dateRangeStart: reportStartDate,
         dateRangeEnd: reportEndDate,
       };
@@ -223,7 +251,7 @@ export default function ReportsPageContent() {
       startDate: reportStartDate,
       endDate: reportEndDate,
       dateGenerated: new Date().toISOString(),
-      status: "completed",
+      status: "processing",
       fileUrl: `/reports/${Date.now()}.pdf`,
     };
 
@@ -394,6 +422,7 @@ Time: ${new Date().toISOString()}
                 >
                   <option value="monthly">Monthly Report</option>
                   <option value="annual">Annual Report</option>
+                  <option value="custom">Custom Range</option>
                 </select>
               </div>
 
@@ -418,7 +447,7 @@ Time: ${new Date().toISOString()}
               )}
 
               {/* Date Range - Only show for Monthly Reports */}
-              {reportType === "monthly" && (
+              {(reportType === "monthly" || reportType === "custom") && (
                 <div className="space-y-2">
                   <Label className="text-sm font-semibold text-gray-700">
                     Date Range

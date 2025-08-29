@@ -186,6 +186,14 @@ interface waterPumpsEntryData {
   description: string;
 }
 
+interface workersEntryData {
+  id: string;
+  name: string;
+  role: string;
+  category: "full-time" | "part-time" | "volunteers";
+  dateEmployed: Date;
+}
+
 export type {
   LivestockEntryData,
   HousingMaterialsEntryData,
@@ -204,4 +212,5 @@ export type {
   sportsEntryData,
   parkingEntryData,
   waterPumpsEntryData,
+  workersEntryData,
 };

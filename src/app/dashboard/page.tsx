@@ -68,7 +68,7 @@ export default function DashboardPage() {
             <span className="text-gray-700 text-base mb-2">
               Socio-Economic Activities
             </span>
-            <span className="text-3xl font-bold text-gray-900">10</span>
+            <span className="text-3xl font-bold text-gray-900">11</span>
           </Card>
         </div>
       </section>

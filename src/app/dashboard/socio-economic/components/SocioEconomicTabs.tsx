@@ -378,6 +378,20 @@ export default function SocioEconomicTabs() {
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#54D12B]"></div>
               )}
             </Link>
+
+            <Link
+              href="/dashboard/socio-economic/workers"
+              className={`pb-4 px-4 font-medium text-sm transition-all duration-200 relative flex-shrink-0 rounded-md focus:outline-none focus:ring-2 focus:ring-[#54D12B] focus:ring-offset-2 ${
+                isActive("/dashboard/socio-economic/workers")
+                  ? "text-[#54D12B]"
+                  : "text-gray-600 hover:text-black"
+              }`}
+            >
+              Workers
+              {isActive("/dashboard/socio-economic/workers") && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#54D12B]"></div>
+              )}
+            </Link>
           </div>
         </div>
       </div>
