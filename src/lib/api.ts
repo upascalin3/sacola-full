@@ -18,6 +18,30 @@ export interface VerifyOtpResponse {
   accessToken: string;
   user: unknown;
 }
+
+export interface UserProfile {
+  id: string;
+  fullName: string;
+  email: string;
+  role: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ChangePasswordDto {
+  currentPassword: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}
+
+export interface RegisterUserDto {
+  email: string;
+  password: string;
+  name?: string;
+  firstName?: string;
+  lastName?: string;
+  role?: 'user' | 'viewer';
+}
 import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
 
 export interface RequestOptions<TBody = unknown> {
@@ -68,7 +92,30 @@ api.interceptors.response.use(
   (error) => {
     const message =
       error?.response?.data?.message || error?.message || "Request failed";
-    const enhancedError = new Error(message);
+    const statusCode = error?.response?.status;
+    
+    // Enhanced error message based on status code and context
+    let enhancedMessage = message;
+    
+    if (statusCode === 404) {
+      if (message.toLowerCase().includes("user") || message.toLowerCase().includes("account")) {
+        enhancedMessage = "User account not found";
+      }
+    } else if (statusCode === 401) {
+      if (message.toLowerCase().includes("password") || message.toLowerCase().includes("credentials")) {
+        enhancedMessage = "Invalid password or credentials";
+      } else {
+        enhancedMessage = "Authentication failed";
+      }
+    } else if (statusCode === 403) {
+      enhancedMessage = "Access forbidden";
+    } else if (statusCode === 400) {
+      if (message.toLowerCase().includes("password")) {
+        enhancedMessage = "Invalid password format or incorrect password";
+      }
+    }
+    
+    const enhancedError = new Error(enhancedMessage);
 
     // Preserve original error information
     (enhancedError as any).response = error?.response;
@@ -142,6 +189,18 @@ export const AuthApi = {
       body,
     });
   },
+  requestPasswordReset(body: { email: string }) {
+    return apiFetch<ApiResponse<{ message: string }>>("/auth/request-reset", {
+      method: "POST",
+      body,
+    });
+  },
+  resetPasswordWithOtp(body: { email: string; otp: string; newPassword: string }) {
+    return apiFetch<ApiResponse<{ message: string }>>("/auth/reset-password-otp", {
+      method: "POST",
+      body,
+    });
+  },
   logout(token: string) {
     return apiFetch<ApiResponse<unknown>>("/auth/logout", {
       method: "POST",
@@ -203,25 +262,34 @@ export const AuthApi = {
     });
   },
   profile(token: string) {
-    return apiFetch<ApiResponse<unknown>>("/auth/profile", { token });
+    return apiFetch<ApiResponse<UserProfile>>("/auth/profile", { token });
   },
 };
 
 // User profile endpoints
 export const UsersApi = {
   me(token: string) {
-    return apiFetch<ApiResponse<unknown>>("/api/users/me", { token });
+    return apiFetch<ApiResponse<UserProfile>>("/api/users/me", { token });
   },
   changeMyPassword(
     token: string,
-    body: {
-      currentPassword: string;
-      newPassword: string;
-      confirmNewPassword: string;
-    }
+    body: ChangePasswordDto
   ) {
     return apiFetch<ApiResponse<unknown>>("/api/users/me/password", {
       method: "PUT",
+      token,
+      body,
+    });
+  },
+  register(body: RegisterUserDto) {
+    return apiFetch<ApiResponse<unknown>>("/auth/register", {
+      method: "POST",
+      body,
+    });
+  },
+  deleteAccount(token: string, body: { password: string }) {
+    return apiFetch<ApiResponse<unknown>>("/api/users/me", {
+      method: "DELETE",
       token,
       body,
     });

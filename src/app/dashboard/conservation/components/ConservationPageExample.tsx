@@ -22,6 +22,8 @@ import { ExternalLink, Plus, Pencil, Trash2, Download } from "lucide-react";
 import { downloadCsvFromObjects } from "@/lib/utils";
 import { addActivity } from "@/lib/activity";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
+import { UsersApi, UserProfile } from "@/lib/api";
 
 interface ConservationPageExampleProps {
   conservationType: ConservationType;
@@ -40,6 +42,9 @@ export function ConservationPageExample({
   onDeleteEntry,
   isLoading = false,
 }: ConservationPageExampleProps) {
+  const { token } = useAuth();
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+  const [isRoleLoading, setIsRoleLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -58,6 +63,22 @@ export function ConservationPageExample({
     openDetailsModal,
     closeModal,
   } = useConservationModals();
+
+  useEffect(() => {
+    const loadUser = async () => {
+      if (!token) return;
+      try {
+        setIsRoleLoading(true);
+        const res = await UsersApi.me(token);
+        if (res?.data) setCurrentUser(res.data as UserProfile);
+      } finally {
+        setIsRoleLoading(false);
+      }
+    };
+    loadUser();
+  }, [token]);
+
+  const isViewer = (currentUser?.role || "").toLowerCase() === "viewer";
 
   const handleCreateEntry = async (data: ConservationData) => {
     if (onCreateEntry) {
@@ -186,13 +207,15 @@ export function ConservationPageExample({
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <Button
-          onClick={openCreateModal}
-          className="bg-[#54D12B] hover:bg-[#54D12B]/90"
-        >
-          <Plus size={20} className="mr-2" />
-          {`Add New ${config.title} Entry`}
-        </Button>
+        {!isViewer && (
+          <Button
+            onClick={openCreateModal}
+            className="bg-[#54D12B] hover:bg-[#54D12B]/90"
+          >
+            <Plus size={20} className="mr-2" />
+            {`Add New ${config.title} Entry`}
+          </Button>
+        )}
         {filteredEntries.length > 0 && (
           <Button
             onClick={handleExportCsv}
@@ -310,26 +333,30 @@ export function ConservationPageExample({
                           >
                             <ExternalLink size={16} />
                           </Button>
-                          <Button
-                            aria-label="Edit entry"
-                            title="Edit entry"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openUpdateModal(entry)}
-                            className="flex items-center text-[#54D12B] hover:text-[#43b71f] p-0 h-auto"
-                          >
-                            <Pencil size={16} />
-                          </Button>
-                          <Button
-                            aria-label="Delete entry"
-                            title="Delete entry"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openDeleteModal(entry)}
-                            className="flex items-center text-red-600 hover:text-red-700 p-0 h-auto"
-                          >
-                            <Trash2 size={16} />
-                          </Button>
+                          {!isViewer && (
+                            <Button
+                              aria-label="Edit entry"
+                              title="Edit entry"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openUpdateModal(entry)}
+                              className="flex items-center text-[#54D12B] hover:text-[#43b71f] p-0 h-auto"
+                            >
+                              <Pencil size={16} />
+                            </Button>
+                          )}
+                          {!isViewer && (
+                            <Button
+                              aria-label="Delete entry"
+                              title="Delete entry"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openDeleteModal(entry)}
+                              className="flex items-center text-red-600 hover:text-red-700 p-0 h-auto"
+                            >
+                              <Trash2 size={16} />
+                            </Button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -363,15 +390,17 @@ export function ConservationPageExample({
                   No entries yet
                 </h3>
                 <p className="text-gray-500 mt-1">
-                  Get started by creating your first entry.
+                  {isViewer ? "Viewer role cannot create entries." : "Get started by creating your first entry."}
                 </p>
               </div>
-              <Button
-                onClick={openCreateModal}
-                className="bg-[#54D12B] hover:bg-[#54D12B]/90"
-              >
-                Create First Entry
-              </Button>
+              {!isViewer && (
+                <Button
+                  onClick={openCreateModal}
+                  className="bg-[#54D12B] hover:bg-[#54D12B]/90"
+                >
+                  Create First Entry
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>

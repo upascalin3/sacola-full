@@ -30,6 +30,8 @@ import {
 import { downloadCsvFromObjects } from "@/lib/utils";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { addActivity } from "@/lib/activity";
+import { useAuth } from "@/lib/auth-context";
+import { UsersApi, UserProfile } from "@/lib/api";
 
 interface SocioEconomicPageExampleProps {
   socioEconomicType: SocioEconomicType;
@@ -60,6 +62,26 @@ export function SocioEconomicPageExample({
   onArchiveEntry,
   onUnarchiveEntry,
 }: SocioEconomicPageExampleProps) {
+  const { token } = useAuth();
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+  const [isRoleLoading, setIsRoleLoading] = useState(false);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      if (!token) return;
+      try {
+        setIsRoleLoading(true);
+        const res = await UsersApi.me(token);
+        if (res?.data) setCurrentUser(res.data as UserProfile);
+      } finally {
+        setIsRoleLoading(false);
+      }
+    };
+    loadUser();
+  }, [token]);
+
+  const isViewer = (currentUser?.role || "").toLowerCase() === "viewer";
+
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
@@ -245,7 +267,7 @@ export function SocioEconomicPageExample({
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        {showAddButton && (
+        {showAddButton && !isViewer && (
           <Button
             onClick={openCreateModal}
             className="bg-[#54D12B] hover:bg-[#54D12B]/90"
@@ -344,7 +366,7 @@ export function SocioEconomicPageExample({
                           >
                             <ExternalLink size={16} />
                           </Button>
-                          {enableEdit && (
+                          {!isViewer && enableEdit && (
                             <Button
                               aria-label="Edit entry"
                               title="Edit entry"
@@ -357,7 +379,7 @@ export function SocioEconomicPageExample({
                               <Pencil size={16} />
                             </Button>
                           )}
-                          {enableDelete && (
+                          {!isViewer && enableDelete && (
                             <Button
                               aria-label="Delete entry"
                               title="Delete entry"
@@ -374,7 +396,7 @@ export function SocioEconomicPageExample({
                               <Trash2 size={16} />
                             </Button>
                           )}
-                          {showArchive && onArchiveEntry && (
+                          {!isViewer && showArchive && onArchiveEntry && (
                             <Button
                               aria-label="Archive entry"
                               title="Archive entry"
@@ -390,7 +412,7 @@ export function SocioEconomicPageExample({
                               <ArchiveIcon size={16} />
                             </Button>
                           )}
-                          {showUnarchive && onUnarchiveEntry && (
+                          {!isViewer && showUnarchive && onUnarchiveEntry && (
                             <Button
                               aria-label="Unarchive entry"
                               title="Unarchive entry"
@@ -439,10 +461,10 @@ export function SocioEconomicPageExample({
                   No entries yet
                 </h3>
                 <p className="text-gray-500 mt-1">
-                  Get started by creating your first entry.
+                  {isViewer ? "Viewer role cannot create entries." : "Get started by creating your first entry."}
                 </p>
               </div>
-              {showAddButton && (
+              {!isViewer && showAddButton && (
                 <Button
                   onClick={openCreateModal}
                   className="bg-[#54D12B] hover:bg-[#54D12B]/90"

@@ -1,100 +1,134 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { MailCheck } from "lucide-react";
+import { Mail, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/auth-context";
 import { AuthApi } from "@/lib/api";
 
 export default function ForgotPasswordPageContent() {
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const [counter, setCounter] = useState(300); // 5 minutes
+  const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [email, setEmail] = useState<string>("");
-  const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
+  const [success, setSuccess] = useState(false);
   const router = useRouter();
-  const { userEmail } = useAuth();
-
-  useEffect(() => {
-    if (counter <= 0) return;
-    const timer = setInterval(() => setCounter((c) => c - 1), 1000);
-    return () => clearInterval(timer);
-  }, [counter]);
-
-  const handleChange = (idx: number, value: string) => {
-    if (!/^[0-9]?$/.test(value)) return;
-    const newOtp = [...otp];
-    newOtp[idx] = value;
-    setOtp(newOtp);
-    if (value && idx < 5) {
-      inputRefs.current[idx + 1]?.focus();
-    }
-    if (!value && idx > 0) {
-      inputRefs.current[idx - 1]?.focus();
-    }
-  };
-
-  const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-    idx: number
-  ) => {
-    if (e.key === "Backspace" && !otp[idx] && idx > 0) {
-      inputRefs.current[idx - 1]?.focus();
-    }
-  };
-
-  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
-    const pasted = e.clipboardData
-      .getData("Text")
-      .replace(/\D/g, "")
-      .slice(0, 6);
-    if (pasted.length === 6) {
-      setOtp(pasted.split(""));
-      inputRefs.current[5]?.focus();
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const code = otp.join("");
+    
     if (!email) {
-      setError("Please provide your email.");
+      setError("Please enter your email address.");
       return;
     }
-    if (code.length !== 6) {
-      setError("Please enter the 6-digit OTP sent to your email.");
+
+    if (!email.includes("@")) {
+      setError("Please enter a valid email address.");
       return;
     }
+
     try {
       setIsSubmitting(true);
-      // optionally verify reset token or proceed to reset page where token is also requested
-      await AuthApi.verifyResetToken({ email, token: "", otp: code });
-      router.push("/reset-password");
+      setError("");
+      
+      const response = await AuthApi.requestPasswordReset({ email });
+      
+      if (response.success) {
+        setSuccess(true);
+        // Store email in sessionStorage for the next step
+        sessionStorage.setItem("resetEmail", email);
+      } else {
+        // Handle specific error cases
+        const errorMessage = response.message || "Failed to send reset code";
+        if (errorMessage.toLowerCase().includes("not found") || 
+            errorMessage.toLowerCase().includes("not registered") ||
+            errorMessage.toLowerCase().includes("does not exist")) {
+          setError("This email address is not registered. Please check your email or create an account.");
+        } else {
+          setError(errorMessage);
+        }
+      }
     } catch (err: any) {
-      setError(err?.message || "Verification failed");
+      console.error("Password reset request error:", err);
+      
+      // Handle specific HTTP status codes
+      if (err?.status === 404 || err?.statusCode === 404) {
+        setError("This email address is not registered. Please check your email or create an account.");
+      } else if (err?.status === 400 || err?.statusCode === 400) {
+        setError(err?.message || "Invalid email address. Please check and try again.");
+      } else if (err?.status === 429 || err?.statusCode === 429) {
+        setError("Too many requests. Please wait a few minutes before trying again.");
+      } else if (err?.status >= 500 || err?.statusCode >= 500) {
+        setError("Server error. Please try again later.");
+      } else {
+        setError(err?.message || "Failed to send reset code. Please check your email and try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleResend = async () => {
-    setCounter(300);
-    setOtp(["", "", "", "", "", ""]);
-    setError("");
-    if (email) {
-      try {
-        await AuthApi.requestReset({ email });
-      } catch {}
-    }
+  const handleContinueToReset = () => {
+    router.push("/reset-password");
   };
 
-  const minutes = Math.floor(counter / 60);
-  const seconds = counter % 60;
+  if (success) {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 p-4"
+        style={{ fontFamily: "var(--font-manrope), system-ui, sans-serif" }}
+      >
+        <div className="relative w-full max-w-md">
+          <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-xl rounded-3xl overflow-hidden">
+            <CardHeader className="text-center pb-2 pt-8">
+              <div className="flex justify-center mb-4">
+                <div className="w-14 h-14 bg-green-500 rounded-2xl flex items-center justify-center shadow-lg">
+                  <Mail className="text-white w-7 h-7" />
+                </div>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Check Your Email
+              </h2>
+              <p className="text-gray-600 text-base">
+                We've sent a password reset code to <strong>{email}</strong>
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-6 px-8 pb-8">
+              <div className="text-center space-y-4">
+                <p className="text-sm text-gray-600">
+                  Please check your email and click the button below to continue with the password reset process.
+                </p>
+                <Button
+                  onClick={handleContinueToReset}
+                  className="w-full h-12 bg-gradient-to-r from-[#54D12B] to-[#54D12B] text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                >
+                  Continue to Reset Password
+                </Button>
+              </div>
+              <div className="flex flex-col items-center gap-2 mt-4">
+                <button
+                  type="button"
+                  onClick={() => setSuccess(false)}
+                  className="text-sm text-[#54D12B] hover:underline"
+                >
+                  Try Different Email
+                </button>
+                <button
+                  type="button"
+                  onClick={() => router.push("/")}
+                  className="text-sm text-gray-500 hover:underline"
+                >
+                  Back to Login
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -106,92 +140,57 @@ export default function ForgotPasswordPageContent() {
           <CardHeader className="text-center pb-2 pt-8">
             <div className="flex justify-center mb-4">
               <div className="w-14 h-14 bg-[#54D12B] rounded-2xl flex items-center justify-center shadow-lg">
-                <MailCheck className="text-white w-7 h-7" />
+                <Mail className="text-white w-7 h-7" />
               </div>
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
               Forgot Password
             </h2>
             <p className="text-gray-600 text-base">
-              Enter the OTP sent to your email to reset your password.
+              Enter your email address and we'll send you a code to reset your password.
             </p>
           </CardHeader>
           <CardContent className="space-y-6 px-8 pb-8">
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
-                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter your email" className="h-12 text-base border-gray-200 focus:border-[#54D12B] focus:ring-[#54D12B]" />
-                <div className="text-right">
-                  <button type="button" onClick={handleResend} className="text-xs text-[#54D12B] hover:underline">
-                    Send/Resend Code
-                  </button>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label
-                  htmlFor="otp"
-                  className="text-sm font-medium text-gray-700"
-                >
-                  OTP Code
+                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                  Email Address
                 </Label>
-                <div className="flex gap-2 justify-center">
-                  {otp.map((digit, idx) => (
                     <Input
-                      key={idx}
-                      ref={(el) => {
-                        inputRefs.current[idx] = el;
-                        return undefined;
-                      }}
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={1}
-                      value={digit}
-                      onChange={(e) => handleChange(idx, e.target.value)}
-                      onKeyDown={(e) => handleKeyDown(e, idx)}
-                      onPaste={idx === 0 ? handlePaste : undefined}
-                      className="w-12 h-12 text-center text-lg font-bold border-gray-200 focus:border-[#54D12B] focus:ring-[#54D12B] rounded-lg shadow-sm"
-                      autoFocus={idx === 0}
-                    />
-                  ))}
-                </div>
+                  id="email" 
+                  type="email" 
+                  value={email} 
+                  onChange={(e) => setEmail(e.target.value)} 
+                  placeholder="Enter your email address" 
+                  className="h-12 text-base border-gray-200 focus:border-[#54D12B] focus:ring-[#54D12B]" 
+                  required
+                />
                 {error && (
-                  <p className="text-xs text-red-600 mt-1 text-center">
-                    {error}
-                  </p>
-                )}
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-500">
-                  Time left:{" "}
-                  <span className="font-semibold text-[#54D12B]">
-                    {minutes}:{seconds.toString().padStart(2, "0")}
-                  </span>
-                </span>
-                {counter === 0 && (
-                  <span className="text-red-500 font-medium">Expired</span>
+                  <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+                    <div className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0">
+                      ⚠️
+                    </div>
+                    <p className="text-sm text-red-700 font-medium">
+                      {error}
+                    </p>
+                  </div>
                 )}
               </div>
               <Button
                 type="submit"
                 className="w-full h-12 bg-gradient-to-r from-[#54D12B] to-[#54D12B] text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={isSubmitting || counter === 0}
+                disabled={isSubmitting}
               >
-                {isSubmitting ? "Verifying..." : "Verify"}
+                {isSubmitting ? "Sending..." : "Send Reset Code"}
               </Button>
             </form>
             <div className="flex flex-col items-center gap-2 mt-4">
               <button
                 type="button"
-                onClick={handleResend}
-                className="text-sm text-[#54D12B] hover:underline"
-              >
-                Send Code Again
-              </button>
-              <button
-                type="button"
                 onClick={() => router.push("/")}
-                className="text-sm text-gray-500 hover:underline"
+                className="text-sm text-gray-500 hover:underline flex items-center gap-1"
               >
+                <ArrowLeft className="w-4 h-4" />
                 Back to Login
               </button>
             </div>
