@@ -1,6 +1,6 @@
 export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE";
 
-const BASE_URL = "http://localhost:3000" as const;
+const BASE_URL = "https://sacola-backend-itcg.onrender.com" as const;
 
 export interface ApiResponse<T> {
   success?: boolean;
