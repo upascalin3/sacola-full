@@ -181,17 +181,8 @@ export default function LoginForm() {
                 <FieldError error={errors.password} />
               </div>
 
-              {/* Remember Me & Forgot Password */}
+              {/* Forgot Password */}
               <div className="flex items-center justify-between text-sm pt-2">
-                <label className="flex items-center space-x-3 cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    className="rounded-lg border-2 border-gray-300 text-white transition-all duration-200"
-                  />
-                  <span className="text-gray-600 font-medium group-hover:text-gray-800 transition-colors">
-                    Remember me
-                  </span>
-                </label>
                 <button
                   type="button"
                   className="text-[#54D12B] hover:text-[#54D12B] font-semibold transition-colors duration-200 hover:underline underline-offset-2"
