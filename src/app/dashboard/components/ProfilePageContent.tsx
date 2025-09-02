@@ -1096,9 +1096,8 @@ export default function ProfilePageContent() {
                     </p>
                     <ul className="text-red-700 text-sm space-y-1">
                       <li>✗ Your profile and personal information</li>
-                      <li>✗ All your projects and data entries</li>
                       <li>✗ Account settings and preferences</li>
-                      <li>✗ Access to all SACOLA services</li>
+                      <li>✗ Access to the system</li>
                     </ul>
                   </div>
                 </div>
