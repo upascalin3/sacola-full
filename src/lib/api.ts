@@ -670,7 +670,7 @@ export const SocioEconomicApi = {
       dateBuilt: string;
       description?: string;
     }
-  >("/api/socio-economic/health-centres"),
+  >("/api/socio-economic/health/centres"),
   sports: createCrud<
     {
       sportName: string;
