@@ -12,6 +12,7 @@ import {
   Clock,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { useToast } from "@/components/ui/toast";
 
 const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutGrid },
@@ -26,6 +27,7 @@ export default function Sidebar() {
   const { logout, userEmail } = useAuth();
   const [timeRemaining, setTimeRemaining] = useState<string>("");
   const [isLoggingOut, setIsLoggingOut] = useState<boolean>(false);
+  const { addToast } = useToast();
 
   // Calculate time remaining in session
   useEffect(() => {
@@ -61,8 +63,17 @@ export default function Sidebar() {
     try {
       setIsLoggingOut(true);
       await logout();
+      addToast({
+        type: "success",
+        title: "Logged out",
+        message: "You have been logged out successfully.",
+      });
     } catch (error) {
-      console.error("Logout failed:", error);
+      addToast({
+        type: "error",
+        title: "Logout failed",
+        message: (error as any)?.message || "Please try again.",
+      });
     }
   };
 

@@ -12,6 +12,21 @@ import {
   CONSERVATION_CONFIGS,
   FieldConfig,
 } from "@/lib/conservation/types";
+import {
+  ErrorDisplay,
+  FormErrorsDisplay,
+  SuccessMessage,
+  FieldError,
+} from "@/components/ui/error-display";
+import { useToast } from "@/components/ui/toast";
+import {
+  ERROR_MESSAGES,
+  SUCCESS_MESSAGES,
+  validateRequired,
+  validateDate,
+  validateNumber,
+  FormErrors,
+} from "@/lib/error-handling";
 
 interface CreateEntryModalProps {
   isOpen: boolean;
@@ -29,8 +44,10 @@ export default function CreateEntryModal({
   isLoading = false,
 }: CreateEntryModalProps) {
   const [formData, setFormData] = useState<Record<string, any>>({});
-  const [formError, setFormError] = useState<string>("");
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
+  const [generalError, setGeneralError] = useState<string | null>(null);
   const config = CONSERVATION_CONFIGS[conservationType];
+  const { addToast } = useToast();
 
   // Initialize form data when conservation type changes
   useEffect(() => {
@@ -46,11 +63,15 @@ export default function CreateEntryModal({
       }
     });
     setFormData(initialData);
-    setFormError("");
+    setFormErrors({});
+    setGeneralError(null);
   }, [conservationType, config.fields]);
 
   const handleInputChange = (key: string, value: any) => {
-    setFormError("");
+    // Clear field-specific error when user starts typing
+    if (formErrors[key]) {
+      setFormErrors((prev) => ({ ...prev, [key]: "" }));
+    }
     setFormData((prev) => ({
       ...prev,
       [key]: value,
@@ -59,106 +80,85 @@ export default function CreateEntryModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFormError("");
+    setFormErrors({});
+    setGeneralError(null);
 
     // Process form data based on field types
     const processedData: Record<string, any> = {};
-
-    console.log("Raw form data before processing:", formData);
-    console.log("Field configurations:", config.fields);
+    const newErrors: FormErrors = {};
 
     for (const field of config.fields) {
       const value = formData[field.key];
-      console.log(`Processing field ${field.key}:`, {
-        value,
-        type: typeof value,
-        fieldType: field.type,
-      });
 
       if (field.type === "date") {
-        if (!value) {
-          setFormError(`${field.label} is required`);
-          return;
+        if (field.required) {
+          const error = validateRequired(value, field.label);
+          if (error) {
+            newErrors[field.key] = error;
+            continue;
+          }
         }
-        console.log(`Processing date field ${field.key}:`, {
-          value,
-          type: typeof value,
-        });
-        // Expecting YYYY-MM-DD from input; validate format and value
-        const isDateOnly =
-          typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
-        const d = new Date(value);
-        const isValid = !isNaN(d.getTime());
-        console.log(`Date validation:`, {
-          isDateOnly,
-          isValid,
-          parsed: d.toISOString(),
-        });
-        if (!isValid) {
-          setFormError(`${field.label} must be a valid date`);
-          return;
+
+        if (value) {
+          const error = validateDate(value);
+          if (error) {
+            newErrors[field.key] = error;
+            continue;
+          }
         }
+
         // Keep as YYYY-MM-DD string to avoid timezone shifts
-        processedData[field.key] = isDateOnly
-          ? value
-          : d.toISOString().split("T")[0];
-        console.log(
-          `Final date value for ${field.key}:`,
-          processedData[field.key]
-        );
+        processedData[field.key] = value;
       } else if (field.type === "number") {
-        if (
-          field.required &&
-          (value === "" || value === null || value === undefined)
-        ) {
-          setFormError(`${field.label} is required`);
-          return;
+        if (field.required) {
+          const error = validateRequired(value, field.label);
+          if (error) {
+            newErrors[field.key] = error;
+            continue;
+          }
         }
-        const num = Number(value);
-        if (field.required && isNaN(num)) {
-          setFormError(`${field.label} must be a valid number`);
-          return;
+
+        if (value !== "" && value !== null && value !== undefined) {
+          const error = validateNumber(value);
+          if (error) {
+            newErrors[field.key] = error;
+            continue;
+          }
         }
-        processedData[field.key] = isNaN(num) ? 0 : num;
+
+        processedData[field.key] = value === "" ? 0 : Number(value);
       } else if (field.type === "text" || field.type === "textarea") {
-        if (field.required && (!value || value.trim() === "")) {
-          setFormError(`${field.label} is required`);
-          return;
+        if (field.required) {
+          const error = validateRequired(value, field.label);
+          if (error) {
+            newErrors[field.key] = error;
+            continue;
+          }
         }
         processedData[field.key] = value || "";
       }
     }
 
-    console.log("Form submitting data:", processedData);
-    console.log(
-      "Form data types:",
-      Object.entries(processedData).map(([key, value]) => ({
-        key,
-        value,
-        type: typeof value,
-        isDate: value instanceof Date,
-      }))
-    );
+    // If there are validation errors, display them and stop
+    if (Object.keys(newErrors).length > 0) {
+      setFormErrors(newErrors);
+      return;
+    }
 
     try {
       await onSubmit(processedData as ConservationData);
-      onClose();
-
-      // Reset form
-      const initialData: Record<string, any> = {};
-      config.fields.forEach((field) => {
-        if (field.type === "date") {
-          initialData[field.key] = new Date().toISOString().split("T")[0];
-        } else if (field.type === "number") {
-          initialData[field.key] = 0;
-        } else {
-          initialData[field.key] = "";
-        }
+      addToast({
+        type: "success",
+        title: "Entry Created Successfully",
+        message: SUCCESS_MESSAGES.CREATE_SUCCESS,
       });
-      setFormData(initialData);
-    } catch (error) {
-      console.error("Failed to create entry:", error);
-      setFormError("Failed to create entry. Please try again.");
+
+      // Close modal after showing success message
+      setTimeout(() => {
+        onClose();
+      }, 1500);
+    } catch (error: any) {
+      setGeneralError(error?.message || ERROR_MESSAGES.CREATE_FAILED);
     }
   };
 
@@ -204,9 +204,14 @@ export default function CreateEntryModal({
                       onChange={(e) =>
                         handleInputChange(field.key, e.target.value)
                       }
-                      className="bg-[#F0F8F0] border-gray-300 focus:ring-[#54D12B] focus:border-[#54D12B]"
+                      className={`bg-[#F0F8F0] border-gray-300 focus:ring-[#54D12B] focus:border-[#54D12B] ${
+                        formErrors[field.key]
+                          ? "border-red-300 focus:border-red-500 focus:ring-red-100"
+                          : ""
+                      }`}
                       required={field.required}
                     />
+                    <FieldError error={formErrors[field.key]} />
                   </div>
                 );
               })}
@@ -228,17 +233,28 @@ export default function CreateEntryModal({
                   value={formData[field.key] || ""}
                   onChange={(e) => handleInputChange(field.key, e.target.value)}
                   rows={4}
-                  className="bg-[#F0F8F0] border-gray-300 focus:ring-[#54D12B] focus:border-[#54D12B] resize-none"
+                  className={`bg-[#F0F8F0] border-gray-300 focus:ring-[#54D12B] focus:border-[#54D12B] resize-none ${
+                    formErrors[field.key]
+                      ? "border-red-300 focus:border-red-500 focus:ring-red-100"
+                      : ""
+                  }`}
                   required={field.required}
                 />
+                <FieldError error={formErrors[field.key]} />
               </div>
             ))}
 
-          {formError && (
-            <div className="text-red-600 text-sm bg-red-50 p-3 rounded">
-              {formError}
-            </div>
+          {generalError && (
+            <ErrorDisplay
+              error={generalError}
+              onDismiss={() => setGeneralError(null)}
+            />
           )}
+
+          <FormErrorsDisplay
+            errors={formErrors}
+            onDismiss={() => setFormErrors({})}
+          />
 
           <div className="flex justify-end gap-4 pt-6">
             <Button

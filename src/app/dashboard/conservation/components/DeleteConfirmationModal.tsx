@@ -14,6 +14,7 @@ interface DeleteConfirmationModalProps {
   onConfirm: () => void;
   conservationType: ConservationType;
   itemName?: string;
+  isLoading?: boolean;
 }
 
 export default function DeleteConfirmationModal({
@@ -22,6 +23,7 @@ export default function DeleteConfirmationModal({
   onConfirm,
   conservationType,
   itemName,
+  isLoading = false,
 }: DeleteConfirmationModalProps) {
   if (!isOpen) return null;
   
@@ -62,8 +64,16 @@ export default function DeleteConfirmationModal({
           <Button
             onClick={onConfirm}
             className="bg-[#54D12B] text-white hover:bg-[#43b71f]"
+            disabled={isLoading}
           >
-            Okay
+            {isLoading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                Deleting...
+              </>
+            ) : (
+              "Okay"
+            )}
           </Button>
         </div>
       </div>

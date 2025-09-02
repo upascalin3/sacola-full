@@ -45,13 +45,14 @@ export function ConservationModals({
     onClose();
   };
 
-  const handleSubmit = (payload: ConservationData) => {
-    onSubmit?.(payload);
+  const handleSubmit = async (payload: ConservationData) => {
+    await onSubmit?.(payload);
+    // keep modal UX responsive; parent decides to mutate list without full reload
     close();
   };
 
-  const handleDelete = () => {
-    onDelete?.();
+  const handleDelete = async () => {
+    await onDelete?.();
     close();
   };
 
@@ -74,6 +75,7 @@ export function ConservationModals({
         onSubmit={handleSubmit}
         initialData={data ?? null}
         conservationType={conservationType}
+        isLoading={isLoading}
       />
 
       <DetailsModal
@@ -90,6 +92,7 @@ export function ConservationModals({
         onClose={close}
         onConfirm={handleDelete}
         conservationType={conservationType}
+        isLoading={isLoading}
       />
     </>
   );

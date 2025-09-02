@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
+import { useToast } from "@/components/ui/toast";
 import {
   ResponsiveContainer,
   BarChart,
@@ -195,6 +196,7 @@ export default function AnalyticsPageContent() {
     showPie?: boolean;
     showBar?: boolean;
   } | null>(null);
+  const { addToast } = useToast();
 
   const currentOptions: ProjectOption[] = selectedCategory
     ? projectOptions[selectedCategory as ProjectCategory]
@@ -386,6 +388,11 @@ export default function AnalyticsPageContent() {
         })
         .filter((d: any) => !Number.isNaN(d.beneficiaries));
       setApiMonthlyData(normalized);
+      addToast({
+        type: "success",
+        title: "Analytics loaded",
+        message: "Data loaded successfully.",
+      });
     } catch (err: any) {
       setErrorMessage(err?.message || "Failed to load analytics");
       setApiMonthlyData([]);
@@ -394,6 +401,11 @@ export default function AnalyticsPageContent() {
       setApiPie(null);
       setApiPieAlt(null);
       setApiChartHints(null);
+      addToast({
+        type: "error",
+        title: "Analytics error",
+        message: err?.message || "Failed to load analytics.",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -633,7 +645,6 @@ export default function AnalyticsPageContent() {
         {/* Analytics Charts */}
         {showAnalytics && (
           <div className="space-y-8 mt-12">
-
             {isLoading && (
               <Card className="p-6">
                 <div className="animate-pulse">

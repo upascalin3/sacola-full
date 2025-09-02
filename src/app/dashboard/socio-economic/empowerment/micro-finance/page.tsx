@@ -5,6 +5,7 @@ import { SocioEconomicTabs, SocioEconomicPageExample } from "../../components";
 import type { empowermentMicroFinanceEntryData } from "@/lib/socio-economic/socio-economic";
 import { SocioEconomicApi } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { useToast } from "@/components/ui/toast";
 import {
   empowermentMicroFinanceFromBackend,
   empowermentMicroFinanceToBackend,
@@ -17,6 +18,7 @@ export default function EmpowermentMicroFinancePage() {
     useState<empowermentMicroFinanceEntryData[]>(initialEntries);
   const [loading, setLoading] = useState(false);
   const { token } = useAuth();
+  const { addToast } = useToast();
 
   const loadData = async () => {
     if (!token) return;
@@ -31,7 +33,11 @@ export default function EmpowermentMicroFinancePage() {
           (Array.isArray(payload) ? payload : []);
       setEntries((items as any[]).map(empowermentMicroFinanceFromBackend));
     } catch (err) {
-      console.error("Failed to load Micro Finance entries", err);
+      addToast({
+        type: "error",
+        title: "Load Failed",
+        message: "Failed to load micro finance entries. Please try again.",
+      });
     } finally {
       setLoading(false);
     }
@@ -67,8 +73,17 @@ export default function EmpowermentMicroFinancePage() {
         ...prev,
       ]);
       await loadData();
+      addToast({
+        type: "success",
+        title: "Entry Created",
+        message: "The micro finance entry has been created successfully.",
+      });
     } catch (err) {
-      console.error("Failed to create Micro Finance entry", err);
+      addToast({
+        type: "error",
+        title: "Creation Failed",
+        message: "Failed to create micro finance entry. Please try again.",
+      });
     }
   };
 
@@ -77,7 +92,11 @@ export default function EmpowermentMicroFinancePage() {
     try {
       const id = String((data as any)?.id || "");
       if (!id) {
-        console.error("Missing id for Micro Finance update; aborting");
+        addToast({
+          type: "error",
+          title: "Update Failed",
+          message: "Missing id for micro finance update.",
+        });
         return;
       }
       const res = await SocioEconomicApi.empowermentMicroFinance.update(
@@ -92,8 +111,17 @@ export default function EmpowermentMicroFinancePage() {
         )
       );
       await loadData();
+      addToast({
+        type: "success",
+        title: "Entry Updated",
+        message: "The micro finance entry has been updated successfully.",
+      });
     } catch (err) {
-      console.error("Failed to update Micro Finance entry", err);
+      addToast({
+        type: "error",
+        title: "Update Failed",
+        message: "Failed to update micro finance entry. Please try again.",
+      });
     }
   };
 
@@ -102,14 +130,27 @@ export default function EmpowermentMicroFinancePage() {
     try {
       const id = String((data as any)?.id || "");
       if (!id) {
-        console.error("Missing id for Micro Finance delete; aborting");
+        addToast({
+          type: "error",
+          title: "Deletion Failed",
+          message: "Missing id for micro finance deletion.",
+        });
         return;
       }
       await SocioEconomicApi.empowermentMicroFinance.remove(token, String(id));
       setEntries((prev) => prev.filter((e) => e.id !== String(id)));
       await loadData();
+      addToast({
+        type: "success",
+        title: "Entry Deleted",
+        message: "The micro finance entry has been deleted successfully.",
+      });
     } catch (err) {
-      console.error("Failed to delete Micro Finance entry", err);
+      addToast({
+        type: "error",
+        title: "Deletion Failed",
+        message: "Failed to delete micro finance entry. Please try again.",
+      });
     }
   };
 

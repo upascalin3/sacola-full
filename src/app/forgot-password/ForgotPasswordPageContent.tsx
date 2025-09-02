@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Mail, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { AuthApi } from "@/lib/api";
+import { useToast } from "@/components/ui/toast";
 
 export default function ForgotPasswordPageContent() {
   const [email, setEmail] = useState("");
@@ -15,10 +16,11 @@ export default function ForgotPasswordPageContent() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const router = useRouter();
+  const { addToast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email) {
       setError("Please enter your email address.");
       return;
@@ -32,38 +34,65 @@ export default function ForgotPasswordPageContent() {
     try {
       setIsSubmitting(true);
       setError("");
-      
+
       const response = await AuthApi.requestPasswordReset({ email });
-      
+
       if (response.success) {
         setSuccess(true);
         // Store email in sessionStorage for the next step
         sessionStorage.setItem("resetEmail", email);
+        addToast({
+          type: "success",
+          title: "Reset code sent",
+          message: "Please check your email for the reset code.",
+        });
       } else {
         // Handle specific error cases
         const errorMessage = response.message || "Failed to send reset code";
-        if (errorMessage.toLowerCase().includes("not found") || 
-            errorMessage.toLowerCase().includes("not registered") ||
-            errorMessage.toLowerCase().includes("does not exist")) {
-          setError("This email address is not registered. Please check your email or create an account.");
+        if (
+          errorMessage.toLowerCase().includes("not found") ||
+          errorMessage.toLowerCase().includes("not registered") ||
+          errorMessage.toLowerCase().includes("does not exist")
+        ) {
+          setError(
+            "This email address is not registered. Please check your email or create an account."
+          );
         } else {
           setError(errorMessage);
         }
+        addToast({
+          type: "error",
+          title: "Could not send reset code",
+          message: errorMessage,
+        });
       }
     } catch (err: any) {
-      console.error("Password reset request error:", err);
-      
+      addToast({
+        type: "error",
+        title: "Request failed",
+        message: err?.message || "Failed to send reset code.",
+      });
+
       // Handle specific HTTP status codes
       if (err?.status === 404 || err?.statusCode === 404) {
-        setError("This email address is not registered. Please check your email or create an account.");
+        setError(
+          "This email address is not registered. Please check your email or create an account."
+        );
       } else if (err?.status === 400 || err?.statusCode === 400) {
-        setError(err?.message || "Invalid email address. Please check and try again.");
+        setError(
+          err?.message || "Invalid email address. Please check and try again."
+        );
       } else if (err?.status === 429 || err?.statusCode === 429) {
-        setError("Too many requests. Please wait a few minutes before trying again.");
+        setError(
+          "Too many requests. Please wait a few minutes before trying again."
+        );
       } else if (err?.status >= 500 || err?.statusCode >= 500) {
         setError("Server error. Please try again later.");
       } else {
-        setError(err?.message || "Failed to send reset code. Please check your email and try again.");
+        setError(
+          err?.message ||
+            "Failed to send reset code. Please check your email and try again."
+        );
       }
     } finally {
       setIsSubmitting(false);
@@ -98,7 +127,8 @@ export default function ForgotPasswordPageContent() {
             <CardContent className="space-y-6 px-8 pb-8">
               <div className="text-center space-y-4">
                 <p className="text-sm text-gray-600">
-                  Please check your email and click the button below to continue with the password reset process.
+                  Please check your email and click the button below to continue
+                  with the password reset process.
                 </p>
                 <Button
                   onClick={handleContinueToReset}
@@ -147,22 +177,26 @@ export default function ForgotPasswordPageContent() {
               Forgot Password
             </h2>
             <p className="text-gray-600 text-base">
-              Enter your email address and we'll send you a code to reset your password.
+              Enter your email address and we'll send you a code to reset your
+              password.
             </p>
           </CardHeader>
           <CardContent className="space-y-6 px-8 pb-8">
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                <Label
+                  htmlFor="email"
+                  className="text-sm font-medium text-gray-700"
+                >
                   Email Address
                 </Label>
-                    <Input
-                  id="email" 
-                  type="email" 
-                  value={email} 
-                  onChange={(e) => setEmail(e.target.value)} 
-                  placeholder="Enter your email address" 
-                  className="h-12 text-base border-gray-200 focus:border-[#54D12B] focus:ring-[#54D12B]" 
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email address"
+                  className="h-12 text-base border-gray-200 focus:border-[#54D12B] focus:ring-[#54D12B]"
                   required
                 />
                 {error && (
@@ -170,9 +204,7 @@ export default function ForgotPasswordPageContent() {
                     <div className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0">
                       ⚠️
                     </div>
-                    <p className="text-sm text-red-700 font-medium">
-                      {error}
-                    </p>
+                    <p className="text-sm text-red-700 font-medium">{error}</p>
                   </div>
                 )}
               </div>

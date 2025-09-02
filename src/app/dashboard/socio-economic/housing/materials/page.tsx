@@ -5,6 +5,7 @@ import { SocioEconomicTabs, SocioEconomicPageExample } from "../../components";
 import type { HousingMaterialsEntryData } from "@/lib/socio-economic/socio-economic";
 import { SocioEconomicApi } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { useToast } from "@/components/ui/toast";
 import {
   housingMaterialsFromBackend,
   housingMaterialsToBackend,
@@ -17,6 +18,7 @@ export default function HousingMaterialsPage() {
     useState<HousingMaterialsEntryData[]>(initialEntries);
   const [loading, setLoading] = useState(false);
   const { token } = useAuth();
+  const { addToast } = useToast();
 
   const loadData = async () => {
     if (!token) return;
@@ -31,7 +33,11 @@ export default function HousingMaterialsPage() {
           (Array.isArray(payload) ? payload : []);
       setEntries((items as any[]).map(housingMaterialsFromBackend));
     } catch (err) {
-      console.error("Failed to load Housing Materials entries", err);
+      addToast({
+        type: "error",
+        title: "Load Failed",
+        message: "Failed to load housing materials entries. Please try again.",
+      });
     } finally {
       setLoading(false);
     }
@@ -64,9 +70,12 @@ export default function HousingMaterialsPage() {
       );
       const created = (res as any)?.data || res;
       setEntries((prev) => [housingMaterialsFromBackend(created), ...prev]);
-      await loadData();
     } catch (err) {
-      console.error("Failed to create Housing Materials entry", err);
+      addToast({
+        type: "error",
+        title: "Creation Failed",
+        message: "Failed to create housing materials entry. Please try again.",
+      });
     }
   };
 
@@ -76,7 +85,11 @@ export default function HousingMaterialsPage() {
       const payload = housingMaterialsToBackend(data);
       const id = String((data as any)?.id || "");
       if (!id) {
-        console.error("Missing id for Housing Materials update; aborting");
+        addToast({
+          type: "error",
+          title: "Update Failed",
+          message: "Missing id for housing materials update.",
+        });
         return;
       }
       const res = await SocioEconomicApi.housingMaterials.update(
@@ -90,9 +103,12 @@ export default function HousingMaterialsPage() {
           item.id === String(id) ? housingMaterialsFromBackend(updated) : item
         )
       );
-      await loadData();
     } catch (err) {
-      console.error("Failed to update Housing Materials entry", err);
+      addToast({
+        type: "error",
+        title: "Update Failed",
+        message: "Failed to update housing materials entry. Please try again.",
+      });
     }
   };
 
@@ -101,14 +117,26 @@ export default function HousingMaterialsPage() {
     try {
       const id = String((data as any)?.id || "");
       if (!id) {
-        console.error("Missing id for Housing Materials delete; aborting");
+        addToast({
+          type: "error",
+          title: "Deletion Failed",
+          message: "Missing id for housing materials deletion.",
+        });
         return;
       }
       await SocioEconomicApi.housingMaterials.remove(token, String(id));
       setEntries((prev) => prev.filter((item) => item.id !== String(id)));
-      await loadData();
+      addToast({
+        type: "success",
+        title: "Entry Deleted",
+        message: "The housing materials entry has been deleted successfully.",
+      });
     } catch (err) {
-      console.error("Failed to delete Housing Materials entry", err);
+      addToast({
+        type: "error",
+        title: "Deletion Failed",
+        message: "Failed to delete housing materials entry. Please try again.",
+      });
     }
   };
 

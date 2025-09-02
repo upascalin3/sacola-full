@@ -6,6 +6,7 @@ import { SocioEconomicPageExample } from "./components/SocioEconomicPageExample"
 import type { LivestockEntryData } from "@/lib/socio-economic/socio-economic";
 import { SocioEconomicApi } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { useToast } from "@/components/ui/toast";
 import {
   livestockFromBackend,
   livestockToBackend,
@@ -17,6 +18,7 @@ export default function SocioEconomicPage() {
   const [entries, setEntries] = useState<LivestockEntryData[]>(initialEntries);
   const { token } = useAuth();
   const [loading, setLoading] = useState(false);
+  const { addToast } = useToast();
 
   const loadData = async () => {
     if (!token) return;
@@ -31,7 +33,11 @@ export default function SocioEconomicPage() {
           (Array.isArray(payload) ? payload : []);
       setEntries((items as any[]).map(livestockFromBackend));
     } catch (err) {
-      console.error("Failed to load Livestock entries", err);
+      addToast({
+        type: "error",
+        title: "Load Failed",
+        message: "Failed to load livestock entries. Please try again.",
+      });
     } finally {
       setLoading(false);
     }
@@ -62,8 +68,17 @@ export default function SocioEconomicPage() {
       const created = (res as any)?.data || res;
       setEntries((prev) => [livestockFromBackend(created), ...prev]);
       await loadData();
+      addToast({
+        type: "success",
+        title: "Entry Created",
+        message: "The livestock entry has been created successfully.",
+      });
     } catch (err) {
-      console.error("Failed to create Livestock entry", err);
+      addToast({
+        type: "error",
+        title: "Creation Failed",
+        message: "Failed to create livestock entry. Please try again.",
+      });
     }
   };
 
@@ -73,7 +88,11 @@ export default function SocioEconomicPage() {
       const payload = livestockToBackend(data);
       const id = String((data as any)?.id || "");
       if (!id) {
-        console.error("Missing id for Livestock update; aborting");
+        addToast({
+          type: "error",
+          title: "Update Failed",
+          message: "Missing id for livestock update.",
+        });
         return;
       }
       const res = await SocioEconomicApi.livestock.update(
@@ -88,8 +107,17 @@ export default function SocioEconomicPage() {
         )
       );
       await loadData();
+      addToast({
+        type: "success",
+        title: "Entry Updated",
+        message: "The livestock entry has been updated successfully.",
+      });
     } catch (err) {
-      console.error("Failed to update Livestock entry", err);
+      addToast({
+        type: "error",
+        title: "Update Failed",
+        message: "Failed to update livestock entry. Please try again.",
+      });
     }
   };
 
@@ -98,14 +126,27 @@ export default function SocioEconomicPage() {
     try {
       const id = String((data as any)?.id || "");
       if (!id) {
-        console.error("Missing id for Livestock delete; aborting");
+        addToast({
+          type: "error",
+          title: "Deletion Failed",
+          message: "Missing id for livestock deletion.",
+        });
         return;
       }
       await SocioEconomicApi.livestock.remove(token, String(id));
       setEntries((prev) => prev.filter((item) => item.id !== String(id)));
       await loadData();
+      addToast({
+        type: "success",
+        title: "Entry Deleted",
+        message: "The livestock entry has been deleted successfully.",
+      });
     } catch (err) {
-      console.error("Failed to delete Livestock entry", err);
+      addToast({
+        type: "error",
+        title: "Deletion Failed",
+        message: "Failed to delete livestock entry. Please try again.",
+      });
     }
   };
 

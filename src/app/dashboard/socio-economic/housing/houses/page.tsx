@@ -5,6 +5,7 @@ import { SocioEconomicTabs, SocioEconomicPageExample } from "../../components";
 import type { HousingHousesEntryData } from "@/lib/socio-economic/socio-economic";
 import { SocioEconomicApi } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { useToast } from "@/components/ui/toast";
 import {
   housingHousesFromBackend,
   housingHousesToBackend,
@@ -17,6 +18,7 @@ export default function HousingHousesPage() {
     useState<HousingHousesEntryData[]>(initialEntries);
   const [loading, setLoading] = useState(false);
   const { token } = useAuth();
+  const { addToast } = useToast();
 
   const loadData = async () => {
     if (!token) return;
@@ -31,7 +33,11 @@ export default function HousingHousesPage() {
           (Array.isArray(payload) ? payload : []);
       setEntries((items as any[]).map(housingHousesFromBackend));
     } catch (err) {
-      console.error("Failed to load Housing Houses entries", err);
+      addToast({
+        type: "error",
+        title: "Load Failed",
+        message: "Failed to load housing houses entries. Please try again.",
+      });
     } finally {
       setLoading(false);
     }
@@ -63,7 +69,11 @@ export default function HousingHousesPage() {
       setEntries((prev) => [housingHousesFromBackend(created), ...prev]);
       await loadData();
     } catch (err) {
-      console.error("Failed to create Housing Houses entry", err);
+      addToast({
+        type: "error",
+        title: "Creation Failed",
+        message: "Failed to create housing house entry. Please try again.",
+      });
     }
   };
 
@@ -73,7 +83,11 @@ export default function HousingHousesPage() {
       const payload = housingHousesToBackend(data);
       const id = String((data as any)?.id || "");
       if (!id) {
-        console.error("Missing id for Housing Houses update; aborting");
+        addToast({
+          type: "error",
+          title: "Update Failed",
+          message: "Missing id for housing house update.",
+        });
         return;
       }
       const res = await SocioEconomicApi.housingHouses.update(
@@ -89,7 +103,11 @@ export default function HousingHousesPage() {
       );
       await loadData();
     } catch (err) {
-      console.error("Failed to update Housing Houses entry", err);
+      addToast({
+        type: "error",
+        title: "Update Failed",
+        message: "Failed to update housing house entry. Please try again.",
+      });
     }
   };
 
@@ -98,14 +116,27 @@ export default function HousingHousesPage() {
     try {
       const id = String((data as any)?.id || "");
       if (!id) {
-        console.error("Missing id for Housing Houses delete; aborting");
+        addToast({
+          type: "error",
+          title: "Deletion Failed",
+          message: "Missing id for housing house deletion.",
+        });
         return;
       }
       await SocioEconomicApi.housingHouses.remove(token, String(id));
       setEntries((prev) => prev.filter((item) => item.id !== String(id)));
       await loadData();
+      addToast({
+        type: "success",
+        title: "Entry Deleted",
+        message: "The housing house entry has been deleted successfully.",
+      });
     } catch (err) {
-      console.error("Failed to delete Housing Houses entry", err);
+      addToast({
+        type: "error",
+        title: "Deletion Failed",
+        message: "Failed to delete housing house entry. Please try again.",
+      });
     }
   };
 

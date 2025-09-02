@@ -12,6 +12,7 @@ import {
   SOCIO_ECONOMIC_CONFIGS,
   FieldConfig,
 } from "@/lib/socio-economic/types";
+import { useToast } from "@/components/ui/toast";
 
 interface UpdateEntryModalProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ interface UpdateEntryModalProps {
   onSubmit: (data: SocioEconomicData) => void;
   initialData: SocioEconomicData | null;
   socioEconomicType: SocioEconomicType;
+  isLoading?: boolean;
 }
 
 export default function UpdateEntryModal({
@@ -27,9 +29,11 @@ export default function UpdateEntryModal({
   onSubmit,
   initialData,
   socioEconomicType,
+  isLoading = false,
 }: UpdateEntryModalProps) {
   const [formData, setFormData] = useState<Record<string, any>>({});
   const config = SOCIO_ECONOMIC_CONFIGS[socioEconomicType];
+  const { addToast } = useToast();
 
   useEffect(() => {
     if (initialData) {
@@ -92,10 +96,11 @@ export default function UpdateEntryModal({
     if (idFromInitial) {
       (processedData as any).id = String(idFromInitial);
     } else {
-      console.warn(
-        "UpdateEntryModal - No ID found in initialData:",
-        initialData
-      );
+      addToast({
+        type: "error",
+        title: "Missing ID",
+        message: "Cannot update: no entry ID found.",
+      });
     }
 
     onSubmit(processedData as SocioEconomicData);
@@ -214,8 +219,16 @@ export default function UpdateEntryModal({
             <Button
               type="submit"
               className="bg-[#54D12B] text-white hover:bg-[#43b71f]"
+              disabled={isLoading}
             >
-              Update
+              {isLoading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  Updating...
+                </>
+              ) : (
+                "Update"
+              )}
             </Button>
           </div>
         </form>

@@ -12,12 +12,11 @@ import { Button } from "@/components/ui/button";
 import { Archive } from "lucide-react";
 import { SocioEconomicApi } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { useToast } from "@/components/ui/toast";
 import {
   eduStudentsFromBackend,
   eduStudentsToBackend,
 } from "@/lib/socio-economic/adapters";
-
-// Backend-managed archive; localStorage helpers removed
 
 const initialEntries: educationStudentsEntryData[] = [];
 
@@ -29,6 +28,7 @@ export default function EducationStudentsPage() {
   const [selectedEntry, setSelectedEntry] =
     useState<educationStudentsEntryData | null>(null);
   const { token } = useAuth();
+  const { addToast } = useToast();
 
   const loadData = async () => {
     if (!token) return;
@@ -43,7 +43,11 @@ export default function EducationStudentsPage() {
           (Array.isArray(payload) ? payload : []);
       setEntries((items as any[]).map(eduStudentsFromBackend));
     } catch (err) {
-      console.error("Failed to load Education Students entries", err);
+      addToast({
+        type: "error",
+        title: "Load Failed",
+        message: "Failed to load student entries. Please try again.",
+      });
     } finally {
       setLoading(false);
     }
@@ -77,8 +81,18 @@ export default function EducationStudentsPage() {
       const created = (res as any)?.data || res;
       setEntries((prev) => [eduStudentsFromBackend(created), ...prev]);
       await loadData();
+
+      addToast({
+        type: "success",
+        title: "Student Entry Created",
+        message: "The student entry has been created successfully.",
+      });
     } catch (err) {
-      console.error("Failed to create Education Students entry", err);
+      addToast({
+        type: "error",
+        title: "Creation Failed",
+        message: "Failed to create student entry. Please try again.",
+      });
     }
   };
 
@@ -88,7 +102,11 @@ export default function EducationStudentsPage() {
       const payload = eduStudentsToBackend(data);
       const id = String((data as any)?.id || "");
       if (!id) {
-        console.error("Missing id for Education Students update; aborting");
+        addToast({
+          type: "error",
+          title: "Update Failed",
+          message: "Missing id for student update.",
+        });
         return;
       }
       const res = await SocioEconomicApi.educationStudents.update(
@@ -103,34 +121,49 @@ export default function EducationStudentsPage() {
         )
       );
       await loadData();
+
+      addToast({
+        type: "success",
+        title: "Student Entry Updated",
+        message: "The student entry has been updated successfully.",
+      });
     } catch (err) {
-      console.error("Failed to update Education Students entry", err);
+      addToast({
+        type: "error",
+        title: "Update Failed",
+        message: "Failed to update student entry. Please try again.",
+      });
     }
   };
 
   const handleDelete = async (entry: educationStudentsEntryData) => {
     if (!token) return;
     try {
-      console.log("Deleting student:", entry.id);
       await SocioEconomicApi.educationStudents.remove(token, String(entry.id));
-      console.log("Student deleted successfully");
       // Remove the deleted student from the current list instead of reloading
       setEntries((prev) => prev.filter((item) => item.id !== entry.id));
+
+      addToast({
+        type: "success",
+        title: "Student Entry Deleted",
+        message: "The student entry has been deleted successfully.",
+      });
     } catch (err) {
-      console.error("Failed to delete Education Student", err);
+      addToast({
+        type: "error",
+        title: "Deletion Failed",
+        message: "Failed to delete student entry. Please try again.",
+      });
     }
   };
 
   const handleArchive = async (entry: educationStudentsEntryData) => {
     if (!token) return;
     try {
-      console.log("Archiving student:", entry.id, entry);
       const response = await SocioEconomicApi.educationStudents.archive(
         token,
         String(entry.id)
       );
-      console.log("Archive API response:", response);
-      console.log("Student archived successfully");
       // Remove the archived student from the current list instead of reloading
       setEntries((prev) => prev.filter((item) => item.id !== entry.id));
 
@@ -138,8 +171,18 @@ export default function EducationStudentsPage() {
       setTimeout(() => {
         loadData();
       }, 1000);
+
+      addToast({
+        type: "success",
+        title: "Student Entry Archived",
+        message: "The student entry has been archived successfully.",
+      });
     } catch (err) {
-      console.error("Failed to archive Education Student", err);
+      addToast({
+        type: "error",
+        title: "Archive Failed",
+        message: "Failed to archive student entry. Please try again.",
+      });
       // Don't remove from list if archive failed
     }
   };

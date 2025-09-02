@@ -5,6 +5,7 @@ import { SocioEconomicTabs, SocioEconomicPageExample } from "../../components";
 import type { educationMaterialsEntryData } from "@/lib/socio-economic/socio-economic";
 import { SocioEconomicApi } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { useToast } from "@/components/ui/toast";
 import {
   eduMaterialsFromBackend,
   eduMaterialsToBackend,
@@ -17,6 +18,7 @@ export default function EducationMaterialsPage() {
     useState<educationMaterialsEntryData[]>(initialEntries);
   const [loading, setLoading] = useState(false);
   const { token } = useAuth();
+  const { addToast } = useToast();
 
   const loadData = async () => {
     if (!token) return;
@@ -31,7 +33,12 @@ export default function EducationMaterialsPage() {
           (Array.isArray(payload) ? payload : []);
       setEntries((items as any[]).map(eduMaterialsFromBackend));
     } catch (err) {
-      console.error("Failed to load Education Materials entries", err);
+      addToast({
+        type: "error",
+        title: "Load Failed",
+        message:
+          "Failed to load education materials entries. Please try again.",
+      });
     } finally {
       setLoading(false);
     }
@@ -65,8 +72,18 @@ export default function EducationMaterialsPage() {
       const created = (res as any)?.data || res;
       setEntries((prev) => [eduMaterialsFromBackend(created), ...prev]);
       await loadData();
+      addToast({
+        type: "success",
+        title: "Entry Created",
+        message: "The education materials entry has been created successfully.",
+      });
     } catch (err) {
-      console.error("Failed to create Education Materials entry", err);
+      addToast({
+        type: "error",
+        title: "Creation Failed",
+        message:
+          "Failed to create education materials entry. Please try again.",
+      });
     }
   };
 
@@ -76,7 +93,11 @@ export default function EducationMaterialsPage() {
       const payload = eduMaterialsToBackend(data);
       const id = String((data as any)?.id || "");
       if (!id) {
-        console.error("Missing id for Education Materials update; aborting");
+        addToast({
+          type: "error",
+          title: "Update Failed",
+          message: "Missing id for education materials update.",
+        });
         return;
       }
       const res = await SocioEconomicApi.educationMaterials.update(
@@ -91,8 +112,18 @@ export default function EducationMaterialsPage() {
         )
       );
       await loadData();
+      addToast({
+        type: "success",
+        title: "Entry Updated",
+        message: "The education materials entry has been updated successfully.",
+      });
     } catch (err) {
-      console.error("Failed to update Education Materials entry", err);
+      addToast({
+        type: "error",
+        title: "Update Failed",
+        message:
+          "Failed to update education materials entry. Please try again.",
+      });
     }
   };
 
@@ -101,14 +132,28 @@ export default function EducationMaterialsPage() {
     try {
       const id = String((data as any)?.id || "");
       if (!id) {
-        console.error("Missing id for Education Materials delete; aborting");
+        addToast({
+          type: "error",
+          title: "Deletion Failed",
+          message: "Missing id for education materials deletion.",
+        });
         return;
       }
       await SocioEconomicApi.educationMaterials.remove(token, String(id));
       setEntries((prev) => prev.filter((item) => item.id !== String(id)));
       await loadData();
+      addToast({
+        type: "success",
+        title: "Entry Deleted",
+        message: "The education materials entry has been deleted successfully.",
+      });
     } catch (err) {
-      console.error("Failed to delete Education Materials entry", err);
+      addToast({
+        type: "error",
+        title: "Deletion Failed",
+        message:
+          "Failed to delete education materials entry. Please try again.",
+      });
     }
   };
 

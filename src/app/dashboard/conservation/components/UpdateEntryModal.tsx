@@ -6,12 +6,26 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  ConservationData, 
-  ConservationType, 
+import {
+  ConservationData,
+  ConservationType,
   CONSERVATION_CONFIGS,
-  FieldConfig 
-} from '@/lib/conservation/types';
+  FieldConfig,
+} from "@/lib/conservation/types";
+import {
+  ErrorDisplay,
+  FormErrorsDisplay,
+  FieldError,
+} from "@/components/ui/error-display";
+import { useToast } from "@/components/ui/toast";
+import {
+  ERROR_MESSAGES,
+  SUCCESS_MESSAGES,
+  validateRequired,
+  validateDate,
+  validateNumber,
+  FormErrors,
+} from "@/lib/error-handling";
 
 interface UpdateEntryModalProps {
   isOpen: boolean;
@@ -19,6 +33,7 @@ interface UpdateEntryModalProps {
   onSubmit: (data: ConservationData) => void;
   initialData: ConservationData | null;
   conservationType: ConservationType;
+  isLoading?: boolean;
 }
 
 export default function UpdateEntryModal({
@@ -27,105 +42,154 @@ export default function UpdateEntryModal({
   onSubmit,
   initialData,
   conservationType,
+  isLoading = false,
 }: UpdateEntryModalProps) {
   const [formData, setFormData] = useState<Record<string, any>>({});
-  const [formError, setFormError] = useState<string>("");
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
+  const [generalError, setGeneralError] = useState<string | null>(null);
   const config = CONSERVATION_CONFIGS[conservationType];
+  const { addToast } = useToast();
 
   useEffect(() => {
     if (initialData) {
       const processedData: Record<string, any> = {};
-      config.fields.forEach(field => {
+      config.fields.forEach((field) => {
         const value = (initialData as any)[field.key];
-        if (field.type === 'date') {
+        if (field.type === "date") {
           if (value instanceof Date) {
-            processedData[field.key] = value.toISOString().split('T')[0];
-          } else if (typeof value === 'string') {
+            processedData[field.key] = value.toISOString().split("T")[0];
+          } else if (typeof value === "string") {
             // Normalize any incoming string date to YYYY-MM-DD
             const d = new Date(value);
-            processedData[field.key] = isNaN(d.getTime()) ? '' : d.toISOString().split('T')[0];
+            processedData[field.key] = isNaN(d.getTime())
+              ? ""
+              : d.toISOString().split("T")[0];
           } else {
-            processedData[field.key] = '';
+            processedData[field.key] = "";
           }
         } else {
-          processedData[field.key] = value || '';
+          processedData[field.key] = value || "";
         }
       });
       setFormData(processedData);
     } else {
       // Initialize with empty values
       const initialFormData: Record<string, any> = {};
-      config.fields.forEach(field => {
-        if (field.type === 'date') {
-          initialFormData[field.key] = new Date().toISOString().split('T')[0];
-        } else if (field.type === 'number') {
+      config.fields.forEach((field) => {
+        if (field.type === "date") {
+          initialFormData[field.key] = new Date().toISOString().split("T")[0];
+        } else if (field.type === "number") {
           initialFormData[field.key] = 0;
         } else {
-          initialFormData[field.key] = '';
+          initialFormData[field.key] = "";
         }
       });
       setFormData(initialFormData);
     }
-    setFormError("");
+    setFormErrors({});
+    setGeneralError(null);
   }, [initialData, config.fields]);
 
   const handleInputChange = (key: string, value: any) => {
-    setFormError("");
-    setFormData(prev => ({
+    // Clear field-specific error when user starts typing
+    if (formErrors[key]) {
+      setFormErrors((prev) => ({ ...prev, [key]: "" }));
+    }
+    setFormData((prev) => ({
       ...prev,
       [key]: value,
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFormError("");
-    
+    setFormErrors({});
+    setGeneralError(null);
+
     // Process form data based on field types
     const processedData: Record<string, any> = {};
-    
+
     for (const field of config.fields) {
       const value = formData[field.key];
-      
-      if (field.type === 'date') {
+
+      if (field.type === "date") {
         if (!value) {
-          setFormError(`${field.label} is required`);
+          setFormErrors((prev) => ({
+            ...prev,
+            [field.key]: `${field.label} is required`,
+          }));
           return;
         }
-        const isDateOnly = typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
+        const isDateOnly =
+          typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
         const date = new Date(value);
         if (isNaN(date.getTime())) {
-          setFormError(`${field.label} must be a valid date`);
+          setFormErrors((prev) => ({
+            ...prev,
+            [field.key]: `${field.label} must be a valid date`,
+          }));
           return;
         }
-        processedData[field.key] = isDateOnly ? value : date.toISOString().split('T')[0];
-      } else if (field.type === 'number') {
-        if (field.required && (value === '' || value === null || value === undefined)) {
-          setFormError(`${field.label} is required`);
+        processedData[field.key] = isDateOnly
+          ? value
+          : date.toISOString().split("T")[0];
+      } else if (field.type === "number") {
+        if (
+          field.required &&
+          (value === "" || value === null || value === undefined)
+        ) {
+          setFormErrors((prev) => ({
+            ...prev,
+            [field.key]: `${field.label} is required`,
+          }));
           return;
         }
         const num = Number(value);
         if (field.required && isNaN(num)) {
-          setFormError(`${field.label} must be a valid number`);
+          setFormErrors((prev) => ({
+            ...prev,
+            [field.key]: `${field.label} must be a valid number`,
+          }));
           return;
         }
         processedData[field.key] = isNaN(num) ? 0 : num;
-      } else if (field.type === 'text' || field.type === 'textarea') {
-        if (field.required && (!value || value.trim() === '')) {
-          setFormError(`${field.label} is required`);
+      } else if (field.type === "text" || field.type === "textarea") {
+        if (field.required && (!value || value.trim() === "")) {
+          setFormErrors((prev) => ({
+            ...prev,
+            [field.key]: `${field.label} is required`,
+          }));
           return;
         }
-        processedData[field.key] = value || '';
+        processedData[field.key] = value || "";
       }
     }
-    
+
     // Preserve the original ID for updates
     if (initialData) {
       processedData.id = (initialData as any).id;
     }
-    
-    onSubmit(processedData as ConservationData);
-    onClose();
+
+    try {
+      await onSubmit(processedData as ConservationData);
+      addToast({
+        type: "success",
+        title: "Entry Updated",
+        message: SUCCESS_MESSAGES.UPDATE_SUCCESS,
+      });
+
+      // Close modal after showing success toast
+      setTimeout(() => {
+        onClose();
+      }, 1000);
+    } catch (error: any) {
+      addToast({
+        type: "error",
+        title: "Update Failed",
+        message: error?.message || ERROR_MESSAGES.UPDATE_FAILED,
+      });
+      setGeneralError(error?.message || ERROR_MESSAGES.UPDATE_FAILED);
+    }
   };
 
   if (!isOpen) return null;
@@ -134,7 +198,9 @@ export default function UpdateEntryModal({
     <div className="fixed inset-0 bg-[#000000]/30 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-8 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Update {config.title} Entry</h2>
+          <h2 className="text-2xl font-bold text-gray-900">
+            Update {config.title} Entry
+          </h2>
           <Button
             variant="ghost"
             size="sm"
@@ -147,52 +213,74 @@ export default function UpdateEntryModal({
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-2 gap-6">
-            {config.fields.filter(field => field.type !== 'textarea').map((field) => {
-              const value = formData[field.key] || '';
+            {config.fields
+              .filter((field) => field.type !== "textarea")
+              .map((field) => {
+                const value = formData[field.key] || "";
 
-              return (
-                <div key={field.key} className="space-y-2">
-                  <Label htmlFor={field.key} className="text-[#088721]">
-                    {field.label}
-                    {field.required && <span className="text-red-500 ml-1">*</span>}
-                  </Label>
-                  <Input
-                    id={field.key}
-                    type={field.type}
-                    placeholder={field.placeholder}
-                    value={value}
-                    onChange={(e) => handleInputChange(field.key, e.target.value)}
-                    className="bg-[#F0F8F0] border-gray-300 focus:ring-[#54D12B] focus:border-[#54D12B]"
-                    required={field.required}
-                  />
-                </div>
-              );
-            })}
+                return (
+                  <div key={field.key} className="space-y-2">
+                    <Label htmlFor={field.key} className="text-[#088721]">
+                      {field.label}
+                      {field.required && (
+                        <span className="text-red-500 ml-1">*</span>
+                      )}
+                    </Label>
+                    <Input
+                      id={field.key}
+                      type={field.type}
+                      placeholder={field.placeholder}
+                      value={value}
+                      onChange={(e) =>
+                        handleInputChange(field.key, e.target.value)
+                      }
+                      className={`bg-[#F0F8F0] border-gray-300 focus:ring-[#54D12B] focus:border-[#54D12B] ${
+                        formErrors[field.key]
+                          ? "border-red-300 focus:border-red-500 focus:ring-red-100"
+                          : ""
+                      }`}
+                      required={field.required}
+                    />
+                    <FieldError error={formErrors[field.key]} />
+                  </div>
+                );
+              })}
           </div>
 
-          {config.fields.filter(field => field.type === 'textarea').map((field) => (
-            <div key={field.key} className="space-y-2">
-              <Label htmlFor={field.key} className="text-[#088721]">
-                {field.label}
-                {field.required && <span className="text-red-500 ml-1">*</span>}
-              </Label>
-              <Textarea
-                id={field.key}
-                placeholder={field.placeholder}
-                value={formData[field.key] || ''}
-                onChange={(e) => handleInputChange(field.key, e.target.value)}
-                rows={4}
-                className="bg-[#F0F8F0] border-gray-300 focus:ring-[#54D12B] focus:border-[#54D12B] resize-none"
-                required={field.required}
-              />
-            </div>
-          ))}
+          {config.fields
+            .filter((field) => field.type === "textarea")
+            .map((field) => (
+              <div key={field.key} className="space-y-2">
+                <Label htmlFor={field.key} className="text-[#088721]">
+                  {field.label}
+                  {field.required && (
+                    <span className="text-red-500 ml-1">*</span>
+                  )}
+                </Label>
+                <Textarea
+                  id={field.key}
+                  placeholder={field.placeholder}
+                  value={formData[field.key] || ""}
+                  onChange={(e) => handleInputChange(field.key, e.target.value)}
+                  rows={4}
+                  className="bg-[#F0F8F0] border-gray-300 focus:ring-[#54D12B] focus:border-[#54D12B] resize-none"
+                  required={field.required}
+                />
+                <FieldError error={formErrors[field.key]} />
+              </div>
+            ))}
 
-          {formError && (
-            <div className="text-red-600 text-sm bg-red-50 p-3 rounded">
-              {formError}
-            </div>
+          {generalError && (
+            <ErrorDisplay
+              error={generalError}
+              onDismiss={() => setGeneralError(null)}
+            />
           )}
+
+          <FormErrorsDisplay
+            errors={formErrors}
+            onDismiss={() => setFormErrors({})}
+          />
 
           <div className="flex justify-end gap-4 pt-6">
             <Button
@@ -206,8 +294,16 @@ export default function UpdateEntryModal({
             <Button
               type="submit"
               className="bg-[#54D12B] text-white hover:bg-[#43b71f]"
+              disabled={isLoading}
             >
-              Update
+              {isLoading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  Updating...
+                </>
+              ) : (
+                "Update"
+              )}
             </Button>
           </div>
         </form>

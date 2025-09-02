@@ -6,6 +6,7 @@ import { SocioEconomicPageExample } from "../components/SocioEconomicPageExample
 import type { itTrainingEntryData } from "@/lib/socio-economic/socio-economic";
 import { SocioEconomicApi } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { useToast } from "@/components/ui/toast";
 import {
   itTrainingFromBackend,
   itTrainingToBackend,
@@ -16,6 +17,7 @@ const initialEntries: itTrainingEntryData[] = [];
 export default function ItCentrePage() {
   const [entries, setEntries] = useState<itTrainingEntryData[]>(initialEntries);
   const { token } = useAuth();
+  const { addToast } = useToast();
 
   const loadData = async () => {
     if (!token) return;
@@ -29,7 +31,11 @@ export default function ItCentrePage() {
           (Array.isArray(payload) ? payload : []);
       setEntries((items as any[]).map(itTrainingFromBackend));
     } catch (err) {
-      console.error("Failed to load IT Training entries", err);
+      addToast({
+        type: "error",
+        title: "Load Failed",
+        message: "Failed to load IT training entries. Please try again.",
+      });
     }
   };
 
@@ -60,7 +66,11 @@ export default function ItCentrePage() {
       setEntries((prev) => [itTrainingFromBackend(created), ...prev]);
       await loadData();
     } catch (err) {
-      console.error("Failed to create IT Training entry", err);
+      addToast({
+        type: "error",
+        title: "Creation Failed",
+        message: "Failed to create IT training entry. Please try again.",
+      });
     }
   };
 
@@ -68,7 +78,11 @@ export default function ItCentrePage() {
     if (!token) return;
     const id = String((data as any)?.id || "");
     if (!id) {
-      console.error("Missing id for IT Training update; aborting");
+      addToast({
+        type: "error",
+        title: "Update Failed",
+        message: "Missing id for IT training update.",
+      });
       return;
     }
     try {
@@ -85,7 +99,11 @@ export default function ItCentrePage() {
       );
       await loadData();
     } catch (err) {
-      console.error("Failed to update IT Training entry", err);
+      addToast({
+        type: "error",
+        title: "Update Failed",
+        message: "Failed to update IT training entry. Please try again.",
+      });
     }
   };
 
@@ -93,15 +111,28 @@ export default function ItCentrePage() {
     if (!token) return;
     const id = String((data as any)?.id || "");
     if (!id) {
-      console.error("Missing id for IT Training delete; aborting");
+      addToast({
+        type: "error",
+        title: "Deletion Failed",
+        message: "Missing id for IT training deletion.",
+      });
       return;
     }
     try {
       await SocioEconomicApi.itTraining.remove(token, String(id));
       setEntries((prev) => prev.filter((e) => e.id !== String(id)));
       await loadData();
+      addToast({
+        type: "success",
+        title: "Entry Deleted",
+        message: "The IT training entry has been deleted successfully.",
+      });
     } catch (err) {
-      console.error("Failed to delete IT Training entry", err);
+      addToast({
+        type: "error",
+        title: "Deletion Failed",
+        message: "Failed to delete IT training entry. Please try again.",
+      });
     }
   };
 

@@ -12,12 +12,27 @@ import {
   SOCIO_ECONOMIC_CONFIGS,
   FieldConfig,
 } from "@/lib/socio-economic/types";
+import {
+  ErrorDisplay,
+  FormErrorsDisplay,
+  FieldError,
+} from "@/components/ui/error-display";
+import { useToast } from "@/components/ui/toast";
+import {
+  ERROR_MESSAGES,
+  SUCCESS_MESSAGES,
+  validateRequired,
+  validateDate,
+  validateNumber,
+  FormErrors,
+} from "@/lib/error-handling";
 
 interface CreateEntryModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: SocioEconomicData) => void;
   socioEconomicType: SocioEconomicType;
+  isLoading?: boolean;
 }
 
 export default function CreateEntryModal({
@@ -25,59 +40,20 @@ export default function CreateEntryModal({
   onClose,
   onSubmit,
   socioEconomicType,
+  isLoading = false,
 }: CreateEntryModalProps) {
   const [formData, setFormData] = useState<Record<string, any>>({});
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
+  const [generalError, setGeneralError] = useState<string | null>(null);
   const config = SOCIO_ECONOMIC_CONFIGS[socioEconomicType];
+  const { addToast } = useToast();
 
-  // Initialize form data when conservation type changes
+  // Initialize form data when socio-economic type changes
   useEffect(() => {
     const initialData: Record<string, any> = {};
     config.fields.forEach((field) => {
-      if (field.type === 'date') {
-        initialData[field.key] = new Date().toISOString().split('T')[0];
-      } else if (field.type === 'number') {
-        initialData[field.key] = 0;
-      } else {
-        initialData[field.key] = "";
-      }
-    });
-    setFormData(initialData);
-  }, [socioEconomicType, config.fields]);
-
-  const handleInputChange = (key: string, value: any) => {
-    setFormData((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Process form data based on field types
-    const processedData = { ...formData };
-    config.fields.forEach((field) => {
-      if (field.type === "date" && processedData[field.key]) {
-        const d = new Date(processedData[field.key]);
-        if (isNaN(d.getTime())) {
-          delete (processedData as any)[field.key];
-        } else {
-          processedData[field.key] = d;
-        }
-      }
-      if (field.type === "number" && processedData[field.key]) {
-        processedData[field.key] = Number(processedData[field.key]);
-      }
-    });
-
-    onSubmit(processedData as SocioEconomicData);
-    onClose();
-
-    // Reset form
-    const initialData: Record<string, any> = {};
-    config.fields.forEach((field) => {
-      if (field.type === 'date') {
-        initialData[field.key] = new Date().toISOString().split('T')[0];
+      if (field.type === "date") {
+        initialData[field.key] = new Date().toISOString().split("T")[0];
       } else if (field.type === "number") {
         initialData[field.key] = 0;
       } else {
@@ -85,6 +61,86 @@ export default function CreateEntryModal({
       }
     });
     setFormData(initialData);
+    setFormErrors({});
+    setGeneralError(null);
+  }, [socioEconomicType, config.fields]);
+
+  const handleInputChange = (key: string, value: any) => {
+    // Clear field-specific error when user starts typing
+    if (formErrors[key]) {
+      setFormErrors((prev) => ({ ...prev, [key]: "" }));
+    }
+    setFormData((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormErrors({});
+    setGeneralError(null);
+
+    const newErrors: FormErrors = {};
+    // Process form data based on field types
+    const processedData = { ...formData };
+    config.fields.forEach((field) => {
+      if (field.type === "date" && processedData[field.key]) {
+        if (field.required) {
+          const error = validateRequired(processedData[field.key], field.label);
+          if (error) {
+            newErrors[field.key] = error;
+            return;
+          }
+        }
+        const d = new Date(processedData[field.key]);
+        if (isNaN(d.getTime())) {
+          newErrors[field.key] = `${field.label} must be a valid date`;
+          return;
+        } else {
+          processedData[field.key] = d;
+        }
+      }
+      if (field.type === "number" && processedData[field.key]) {
+        if (field.required) {
+          const error = validateRequired(processedData[field.key], field.label);
+          if (error) {
+            newErrors[field.key] = error;
+            return;
+          }
+        }
+        const num = Number(processedData[field.key]);
+        if (isNaN(num)) {
+          newErrors[field.key] = `${field.label} must be a valid number`;
+          return;
+        }
+        processedData[field.key] = num;
+      }
+    });
+    if (Object.keys(newErrors).length > 0) {
+      setFormErrors(newErrors);
+      return;
+    }
+    try {
+      await onSubmit(processedData as SocioEconomicData);
+      addToast({
+        type: "success",
+        title: "Entry Created",
+        message: SUCCESS_MESSAGES.CREATE_SUCCESS,
+      });
+
+      // Close modal after showing success toast
+      setTimeout(() => {
+        onClose();
+      }, 1000);
+    } catch (error: any) {
+      addToast({
+        type: "error",
+        title: "Creation Failed",
+        message: error?.message || ERROR_MESSAGES.CREATE_FAILED,
+      });
+      setGeneralError(error?.message || ERROR_MESSAGES.CREATE_FAILED);
+    }
   };
 
   if (!isOpen) return null;
@@ -120,7 +176,7 @@ export default function CreateEntryModal({
                 const value = formData[field.key] || "";
                 const displayValue =
                   field.type === "date" && value instanceof Date
-                    ? value.toISOString().split('T')[0]
+                    ? value.toISOString().split("T")[0]
                     : value;
 
                 return (
@@ -138,7 +194,11 @@ export default function CreateEntryModal({
                         onChange={(e) =>
                           handleInputChange(field.key, e.target.value)
                         }
-                        className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#54D12B] focus:border-transparent"
+                        className={`block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#54D12B] focus:border-transparent ${
+                          formErrors[field.key]
+                            ? "border-red-300 focus:ring-red-500"
+                            : ""
+                        }`}
                         required={field.required}
                       >
                         <option value="" disabled>
@@ -159,10 +219,15 @@ export default function CreateEntryModal({
                         onChange={(e) =>
                           handleInputChange(field.key, e.target.value)
                         }
-                        className="bg-[#F0F8F0] border-gray-300 focus:ring-[#54D12B] focus:border-[#54D12B]"
+                        className={`bg-[#F0F8F0] border-gray-300 focus:ring-[#54D12B] focus:border-[#54D12B] ${
+                          formErrors[field.key]
+                            ? "border-red-300 focus:border-red-500 focus:ring-red-100"
+                            : ""
+                        }`}
                         required={field.required}
                       />
                     )}
+                    <FieldError error={formErrors[field.key]} />
                   </div>
                 );
               })}
@@ -184,11 +249,28 @@ export default function CreateEntryModal({
                   value={formData[field.key] || ""}
                   onChange={(e) => handleInputChange(field.key, e.target.value)}
                   rows={4}
-                  className="bg-[#F0F8F0] border-gray-300 focus:ring-[#54D12B] focus:border-[#54D12B] resize-none"
+                  className={`bg-[#F0F8F0] border-gray-300 focus:ring-[#54D12B] focus:border-[#54D12B] resize-none ${
+                    formErrors[field.key]
+                      ? "border-red-300 focus:border-red-500 focus:ring-red-100"
+                      : ""
+                  }`}
                   required={field.required}
                 />
+                <FieldError error={formErrors[field.key]} />
               </div>
             ))}
+
+          {generalError && (
+            <ErrorDisplay
+              error={generalError}
+              onDismiss={() => setGeneralError(null)}
+            />
+          )}
+
+          <FormErrorsDisplay
+            errors={formErrors}
+            onDismiss={() => setFormErrors({})}
+          />
 
           <div className="flex justify-end gap-4 pt-6">
             <Button
@@ -202,8 +284,16 @@ export default function CreateEntryModal({
             <Button
               type="submit"
               className="bg-[#54D12B] text-white hover:bg-[#43b71f]"
+              disabled={isLoading}
             >
-              Create
+              {isLoading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  Creating...
+                </>
+              ) : (
+                "Create"
+              )}
             </Button>
           </div>
         </form>

@@ -8,6 +8,15 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
+import { FieldError } from "@/components/ui/error-display";
+import { useToast } from "@/components/ui/toast";
+import {
+  ERROR_MESSAGES,
+  SUCCESS_MESSAGES,
+  validateEmail,
+  validatePassword,
+  validateRequired,
+} from "@/lib/error-handling";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
@@ -17,20 +26,22 @@ export default function LoginForm() {
   const [errors, setErrors] = useState({ email: "", password: "" });
   const [forgotLoading, setForgotLoading] = useState(false);
   const { startLogin } = useAuth();
+  const { addToast } = useToast();
 
   const validateForm = () => {
     const newErrors = { email: "", password: "" };
 
-    if (!email) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = "Please enter a valid email";
+    // Validate email
+    const emailError = validateRequired(email, "Email") || validateEmail(email);
+    if (emailError) {
+      newErrors.email = emailError;
     }
 
-    if (!password) {
-      newErrors.password = "Password is required";
-    } else if (password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
+    // Validate password
+    const passwordError =
+      validateRequired(password, "Password") || validatePassword(password);
+    if (passwordError) {
+      newErrors.password = passwordError;
     }
 
     setErrors(newErrors);
@@ -47,9 +58,25 @@ export default function LoginForm() {
     try {
       setIsLoading(true);
       await startLogin(email, password);
-      router.push("/otp");
+      addToast({
+        type: "success",
+        title: "Login Successful",
+        message: SUCCESS_MESSAGES.LOGIN_SUCCESS,
+      });
+      // Redirect after showing success toast
+      setTimeout(() => {
+        router.push("/otp");
+      }, 1500);
     } catch (err: any) {
-      setErrors((prev) => ({ ...prev, password: err?.message || "Login failed" }));
+      addToast({
+        type: "error",
+        title: "Login Failed",
+        message: err?.message || ERROR_MESSAGES.LOGIN_FAILED,
+      });
+      setErrors((prev) => ({
+        ...prev,
+        password: err?.message || ERROR_MESSAGES.LOGIN_FAILED,
+      }));
     } finally {
       setIsLoading(false);
     }
@@ -110,12 +137,7 @@ export default function LoginForm() {
                     }`}
                   />
                 </div>
-                {errors.email && (
-                  <p className="text-sm text-red-600 font-medium flex items-center gap-1">
-                    <span className="w-1 h-1 bg-red-600 rounded-full"></span>
-                    {errors.email}
-                  </p>
-                )}
+                <FieldError error={errors.email} />
               </div>
 
               {/* Password Field */}
@@ -156,12 +178,7 @@ export default function LoginForm() {
                     )}
                   </button>
                 </div>
-                {errors.password && (
-                  <p className="text-sm text-red-600 font-medium flex items-center gap-1">
-                    <span className="w-1 h-1 bg-red-600 rounded-full"></span>
-                    {errors.password}
-                  </p>
-                )}
+                <FieldError error={errors.password} />
               </div>
 
               {/* Remember Me & Forgot Password */}

@@ -10,6 +10,7 @@ import {
   waterTanksToBackend,
 } from "@/lib/conservation/adapters";
 import { useAuth } from "@/lib/auth-context";
+import { useToast } from "@/components/ui/toast";
 
 const initialWaterTankData: WaterTanksEntryData[] = [];
 
@@ -18,6 +19,7 @@ export default function WaterTanksPage() {
     useState<WaterTanksEntryData[]>(initialWaterTankData);
   const { token } = useAuth();
   const [loading, setLoading] = useState(true);
+  const { addToast } = useToast();
 
   useEffect(() => {
     const load = async () => {
@@ -39,8 +41,11 @@ export default function WaterTanksPage() {
           });
         setWaterTankData(sortedItems);
       } catch (error) {
-        console.error("Failed to load water tank entries:", error);
-        throw error;
+        addToast({
+          type: "error",
+          title: "Load Failed",
+          message: "Failed to load water tank entries. Please try again.",
+        });
       } finally {
         setLoading(false);
       }
@@ -59,8 +64,17 @@ export default function WaterTanksPage() {
       const created = (res as any)?.data || res;
       const newEntry = waterTanksFromBackend(created);
       setWaterTankData((prev) => [newEntry, ...prev]);
+      addToast({
+        type: "success",
+        title: "Water Tank Entry Created",
+        message: "The water tank entry has been created successfully.",
+      });
     } catch (error) {
-      console.error("Failed to create water tank entry:", error);
+      addToast({
+        type: "error",
+        title: "Creation Failed",
+        message: "Failed to create water tank entry. Please try again.",
+      });
       throw error;
     }
   };
@@ -81,8 +95,17 @@ export default function WaterTanksPage() {
           e.id === String(id) ? waterTanksFromBackend(updated) : e
         )
       );
+      addToast({
+        type: "success",
+        title: "Water Tank Entry Updated",
+        message: "The water tank entry has been updated successfully.",
+      });
     } catch (error) {
-      console.error("Failed to update water tank entry:", error);
+      addToast({
+        type: "error",
+        title: "Update Failed",
+        message: "Failed to update water tank entry. Please try again.",
+      });
       throw error;
     }
   };
@@ -93,8 +116,17 @@ export default function WaterTanksPage() {
       const id = (data as any).id;
       await ConservationApi.waterTanks.remove(token, String(id));
       setWaterTankData((prev) => prev.filter((e) => e.id !== String(id)));
+      addToast({
+        type: "success",
+        title: "Water Tank Entry Deleted",
+        message: "The water tank entry has been deleted successfully.",
+      });
     } catch (error) {
-      console.error("Failed to delete water tank entry:", error);
+      addToast({
+        type: "error",
+        title: "Deletion Failed",
+        message: "Failed to delete water tank entry. Please try again.",
+      });
       throw error;
     }
   };

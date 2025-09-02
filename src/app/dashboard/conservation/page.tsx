@@ -7,6 +7,7 @@ import { TreeEntryData } from "@/lib/conservation/conservation";
 import { ConservationApi } from "@/lib/api";
 import { treeFromBackend, treeToBackend } from "@/lib/conservation/adapters";
 import { useAuth } from "@/lib/auth-context";
+import { useToast } from "@/components/ui/toast";
 import { ConservationData } from "@/lib/conservation/types";
 
 const initialTreePlantingData: TreeEntryData[] = [];
@@ -17,6 +18,7 @@ export default function ConservationPage() {
   );
   const [loading, setLoading] = useState(false);
   const { token } = useAuth();
+  const { addToast } = useToast();
 
   const loadData = async (filters?: any) => {
     if (!token) return;
@@ -46,7 +48,11 @@ export default function ConservationPage() {
       });
       setTreeData(sortedItems);
     } catch (error) {
-      console.error("Failed to load tree planting data:", error);
+      addToast({
+        type: "error",
+        title: "Load Failed",
+        message: "Failed to load conservation data. Please try again.",
+      });
     } finally {
       setLoading(false);
     }
@@ -58,17 +64,21 @@ export default function ConservationPage() {
 
   const handleCreate = async (data: ConservationData) => {
     if (!token) {
-      console.error("No authentication token available");
+      addToast({
+        type: "error",
+        title: "Unauthorized",
+        message: "Authentication token is required.",
+      });
       throw new Error("Authentication token is required");
     }
 
-    console.log("Token available:", !!token);
-    console.log("Token length:", token?.length);
-
     // Type guard to ensure we have tree planting data
     if (!("treeType" in data) || !("numberOfTrees" in data)) {
-      console.error("Invalid data type for tree planting:", data);
-      console.error("Available fields:", Object.keys(data));
+      addToast({
+        type: "error",
+        title: "Invalid Data",
+        message: "Provided data is not a valid tree planting entry.",
+      });
       throw new Error("Invalid data type for tree planting");
     }
 
@@ -86,100 +96,16 @@ export default function ConservationPage() {
     );
 
     if (missingFields.length > 0) {
-      console.error("Missing required fields:", missingFields);
-      console.error("Available fields:", Object.keys(data));
-      console.error(
-        "Field values:",
-        requiredFields.map((field) => ({
-          field,
-          value: data[field as keyof typeof data],
-          exists: field in data,
-        }))
-      );
+      addToast({
+        type: "error",
+        title: "Validation Error",
+        message: `Missing required fields: ${missingFields.join(", ")}`,
+      });
       throw new Error(`Missing required fields: ${missingFields.join(", ")}`);
     }
 
-    // Log the exact data structure being received
-    console.log("Received form data structure:", {
-      treeType: {
-        value: data.treeType,
-        type: typeof data.treeType,
-        exists: "treeType" in data,
-      },
-      location: {
-        value: data.location,
-        type: typeof data.location,
-        exists: "location" in data,
-      },
-      numberOfTrees: {
-        value: data.numberOfTrees,
-        type: typeof data.numberOfTrees,
-        exists: "numberOfTrees" in data,
-      },
-      datePlanted: {
-        value: data.datePlanted,
-        type: typeof data.datePlanted,
-        exists: "datePlanted" in data,
-      },
-      targetBeneficiaries: {
-        value: data.targetBeneficiaries,
-        type: typeof data.targetBeneficiaries,
-        exists: "targetBeneficiaries" in data,
-      },
-      currentBeneficiaries: {
-        value: data.currentBeneficiaries,
-        type: typeof data.currentBeneficiaries,
-        exists: "currentBeneficiaries" in data,
-      },
-      description: {
-        value: data.description,
-        type: typeof data.description,
-        exists: "description" in data,
-      },
-    });
-
-    // Add date debugging as per SOLUTION 13
-    console.log("=== DATE DEBUGGING ===");
-    console.log("Original datePlanted:", data.datePlanted);
-    console.log("Type of datePlanted:", typeof data.datePlanted);
-    console.log("Is Date instance:", data.datePlanted instanceof Date);
-
-    if (data.datePlanted instanceof Date) {
-      console.log("Date methods:");
-      console.log("- getTime():", data.datePlanted.getTime());
-      console.log("- toISOString():", data.datePlanted.toISOString());
-      console.log("- toString():", data.datePlanted.toString());
-      console.log("- toDateString():", data.datePlanted.toDateString());
-      console.log("- ISO format:", data.datePlanted.toISOString());
-    }
-    console.log("=====================");
-
     try {
-      console.log("Creating tree planting entry with data:", data);
-      console.log("Data types:", {
-        treeType: typeof data.treeType,
-        location: typeof data.location,
-        numberOfTrees: typeof data.numberOfTrees,
-        datePlanted: typeof data.datePlanted,
-        datePlantedValue: data.datePlanted,
-        datePlantedInstance: data.datePlanted instanceof Date,
-        targetBeneficiaries: typeof data.targetBeneficiaries,
-        currentBeneficiaries: typeof data.currentBeneficiaries,
-        description: typeof data.description,
-      });
-
       const backendData = treeToBackend(data as TreeEntryData);
-      console.log("Converted to backend format:", backendData);
-      console.log("Backend data types:", {
-        treeType: typeof backendData.treeType,
-        location: typeof backendData.location,
-        numberOfTrees: typeof backendData.numberOfTrees,
-        datePlanted: typeof (backendData as any).datePlanted,
-        datePlantedValue: (backendData as any).datePlanted,
-        targetBeneficiaries: typeof backendData.targetBeneficiaries,
-        currentBeneficiaries: typeof backendData.currentBeneficiaries,
-        description: typeof backendData.description,
-      });
 
       // Validate the backend data
       if (
@@ -188,7 +114,11 @@ export default function ConservationPage() {
         !backendData.numberOfTrees ||
         !(backendData as any).datePlanted
       ) {
-        console.error("Backend data validation failed:", backendData);
+        addToast({
+          type: "error",
+          title: "Validation Error",
+          message: "Required fields are missing.",
+        });
         throw new Error("Backend data validation failed");
       }
 
@@ -201,97 +131,18 @@ export default function ConservationPage() {
         typeof backendData.targetBeneficiaries !== "number" ||
         typeof backendData.currentBeneficiaries !== "number"
       ) {
-        console.error("Backend data type validation failed:", {
-          treeType: {
-            value: backendData.treeType,
-            type: typeof backendData.treeType,
-            expected: "string",
-          },
-          location: {
-            value: backendData.location,
-            type: typeof backendData.location,
-            expected: "string",
-          },
-          numberOfTrees: {
-            value: backendData.numberOfTrees,
-            type: typeof backendData.numberOfTrees,
-            expected: "number",
-          },
-          datePlanted: {
-            value: (backendData as any).datePlanted,
-            type: typeof (backendData as any).datePlanted,
-            expected: "string (YYYY-MM-DD)",
-          },
-          targetBeneficiaries: {
-            value: backendData.targetBeneficiaries,
-            type: typeof backendData.targetBeneficiaries,
-            expected: "number",
-          },
-          currentBeneficiaries: {
-            value: backendData.currentBeneficiaries,
-            type: typeof backendData.currentBeneficiaries,
-            expected: "number",
-          },
+        addToast({
+          type: "error",
+          title: "Validation Error",
+          message: "Field types are invalid.",
         });
         throw new Error("Backend data type validation failed");
       }
-
-      console.log("Making API call to create tree planting entry...");
-      console.log("API endpoint:", "/api/conservation/tree-planting");
-      console.log("Request payload:", backendData);
-      console.log(
-        "Request payload JSON:",
-        JSON.stringify(backendData, null, 2)
-      );
-
-      // Log what the backend entity expects vs what we're sending
-      console.log("Backend entity expects:", {
-        treeType: "string",
-        location: "string",
-        numberOfTrees: "number",
-        datePlanted: "string (YYYY-MM-DD)",
-        description: "string (optional)",
-        targetBeneficiaries: "number",
-        currentBeneficiaries: "number",
-      });
-
-      console.log("What we're sending:", {
-        treeType: {
-          value: backendData.treeType,
-          type: typeof backendData.treeType,
-        },
-        location: {
-          value: backendData.location,
-          type: typeof backendData.location,
-        },
-        numberOfTrees: {
-          value: backendData.numberOfTrees,
-          type: typeof backendData.numberOfTrees,
-        },
-        datePlanted: {
-          value: (backendData as any).datePlanted,
-          type: typeof (backendData as any).datePlanted,
-          format: (backendData as any).datePlanted,
-        },
-        description: {
-          value: backendData.description,
-          type: typeof backendData.description,
-        },
-        targetBeneficiaries: {
-          value: backendData.targetBeneficiaries,
-          type: typeof backendData.targetBeneficiaries,
-        },
-        currentBeneficiaries: {
-          value: backendData.currentBeneficiaries,
-          type: typeof backendData.currentBeneficiaries,
-        },
-      });
 
       const res = await ConservationApi.treePlanting.create(
         token,
         backendData as any
       );
-      console.log("API response received:", res);
 
       // Validate the response
       if (!res) {
@@ -299,7 +150,6 @@ export default function ConservationPage() {
       }
 
       const created = (res as any)?.data || res;
-      console.log("Processed response data:", created);
 
       if (!created) {
         throw new Error("No data in API response");
@@ -307,13 +157,21 @@ export default function ConservationPage() {
 
       try {
         const processedEntry = treeFromBackend(created);
-        console.log("Processed entry:", processedEntry);
         const newEntry = processedEntry;
         setTreeData((prev) => [newEntry, ...prev]);
-        // Reload fresh data from server after create
-        await loadData();
+
+        addToast({
+          type: "success",
+          title: "Tree Planting Entry Created",
+          message: "The tree planting entry has been created successfully.",
+        });
       } catch (processingError: any) {
-        console.error("Error processing API response:", processingError);
+        addToast({
+          type: "error",
+          title: "Processing Failed",
+          message:
+            processingError?.message || "Failed to process API response.",
+        });
         throw new Error(
           `Failed to process API response: ${
             processingError?.message || "Unknown error"
@@ -321,56 +179,11 @@ export default function ConservationPage() {
         );
       }
     } catch (error: any) {
-      console.error("Failed to create tree planting entry:", error);
-      console.error("Error details:", {
-        message: error?.message || "Unknown error",
-        stack: error?.stack || "No stack trace",
-        data: data,
-        errorType: typeof error,
-        errorKeys: error ? Object.keys(error) : [],
-        fullError: error,
-        response: error?.response,
-        status: error?.response?.status,
-        statusText: error?.response?.statusText,
-        responseData: error?.response?.data,
+      addToast({
+        type: "error",
+        title: "Creation Failed",
+        message: "Failed to create tree planting entry. Please try again.",
       });
-
-      // Re-throw with more context if it's an empty error
-      if (!error?.message && !error?.response) {
-        const enhancedError = new Error(
-          "Failed to create tree planting entry - unknown error occurred"
-        );
-        (enhancedError as any).originalError = error;
-        (enhancedError as any).formData = data;
-        throw enhancedError;
-      }
-
-      // Check for specific HTTP status codes
-      if (error?.status) {
-        switch (error.status) {
-          case 400:
-            console.error("Bad request - check your data format");
-            break;
-          case 401:
-            console.error("Unauthorized - check your authentication token");
-            break;
-          case 403:
-            console.error(
-              "Forbidden - you may not have permission to create entries"
-            );
-            break;
-          case 404:
-            console.error("API endpoint not found - check the URL");
-            break;
-          case 500:
-            console.error("Internal server error - backend issue");
-            break;
-          default:
-            console.error(
-              `HTTP ${error.status}: ${error.statusText || "Unknown error"}`
-            );
-        }
-      }
 
       throw error;
     }
@@ -381,7 +194,11 @@ export default function ConservationPage() {
 
     // Type guard to ensure we have tree planting data
     if (!("treeType" in data) || !("numberOfTrees" in data)) {
-      console.error("Invalid data type for tree planting:", data);
+      addToast({
+        type: "error",
+        title: "Invalid Data",
+        message: "Provided data is not a valid tree planting entry.",
+      });
       throw new Error("Invalid data type for tree planting");
     }
 
@@ -396,10 +213,18 @@ export default function ConservationPage() {
       setTreeData((prev) =>
         prev.map((e) => (e.id === String(id) ? treeFromBackend(updated) : e))
       );
-      // Reload fresh data from server after update
-      await loadData();
+
+      addToast({
+        type: "success",
+        title: "Tree Planting Entry Updated",
+        message: "The tree planting entry has been updated successfully.",
+      });
     } catch (error: any) {
-      console.error("Failed to update tree planting entry:", error);
+      addToast({
+        type: "error",
+        title: "Update Failed",
+        message: "Failed to update tree planting entry. Please try again.",
+      });
       throw error;
     }
   };
@@ -409,7 +234,11 @@ export default function ConservationPage() {
 
     // Type guard to ensure we have tree planting data
     if (!("treeType" in data) || !("numberOfTrees" in data)) {
-      console.error("Invalid data type for tree planting:", data);
+      addToast({
+        type: "error",
+        title: "Invalid Data",
+        message: "Provided data is not a valid tree planting entry.",
+      });
       throw new Error("Invalid data type for tree planting");
     }
 
@@ -417,10 +246,18 @@ export default function ConservationPage() {
       const id = (data as any).id;
       await ConservationApi.treePlanting.remove(token, String(id));
       setTreeData((prev) => prev.filter((e) => e.id !== String(id)));
-      // Reload fresh data from server after delete
-      await loadData();
+
+      addToast({
+        type: "success",
+        title: "Tree Planting Entry Deleted",
+        message: "The tree planting entry has been deleted successfully.",
+      });
     } catch (error: any) {
-      console.error("Failed to delete tree planting entry:", error);
+      addToast({
+        type: "error",
+        title: "Deletion Failed",
+        message: "Failed to delete tree planting entry. Please try again.",
+      });
       throw error;
     }
   };

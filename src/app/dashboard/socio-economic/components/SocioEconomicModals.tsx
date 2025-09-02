@@ -19,6 +19,7 @@ interface SocioEconomicModalsProps {
   data?: SocioEconomicData;
   onSubmit?: (data: SocioEconomicData) => void;
   onDelete?: () => void;
+  isLoading?: boolean;
 }
 
 export function SocioEconomicModals({
@@ -29,6 +30,7 @@ export function SocioEconomicModals({
   data,
   onSubmit,
   onDelete,
+  isLoading = false,
 }: SocioEconomicModalsProps) {
   const [visibleAction, setVisibleAction] = useState<ModalAction>(action);
   const [open, setOpen] = useState<boolean>(isOpen);
@@ -43,13 +45,13 @@ export function SocioEconomicModals({
     onClose();
   };
 
-  const handleSubmit = (payload: SocioEconomicData) => {
-    onSubmit?.(payload);
+  const handleSubmit = async (payload: SocioEconomicData) => {
+    await onSubmit?.(payload);
     close();
   };
 
-  const handleDelete = () => {
-    onDelete?.();
+  const handleDelete = async () => {
+    await onDelete?.();
     close();
   };
 
@@ -63,6 +65,7 @@ export function SocioEconomicModals({
         onClose={close}
         onSubmit={handleSubmit}
         socioEconomicType={socioEconomicType}
+        isLoading={isLoading}
       />
 
       <UpdateEntryModal
@@ -72,6 +75,7 @@ export function SocioEconomicModals({
         initialData={data ?? null}
         socioEconomicType={socioEconomicType}
         key={`update-${(data as any)?.id || "new"}`}
+        isLoading={isLoading}
       />
 
       <DetailsModal
@@ -88,6 +92,7 @@ export function SocioEconomicModals({
         onClose={close}
         onConfirm={handleDelete}
         socioEconomicType={socioEconomicType}
+        isLoading={isLoading}
       />
     </>
   );

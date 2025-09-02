@@ -5,6 +5,7 @@ import { SocioEconomicTabs, SocioEconomicPageExample } from "../components";
 import { waterPumpsEntryData } from "@/lib/socio-economic/socio-economic";
 import { SocioEconomicApi } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { useToast } from "@/components/ui/toast";
 import {
   waterPumpsFromBackend,
   waterPumpsToBackend,
@@ -17,6 +18,7 @@ export default function WaterPumpsPage() {
     initialWaterPumpsData
   );
   const { token } = useAuth();
+  const { addToast } = useToast();
 
   useEffect(() => {
     const load = async () => {
@@ -64,6 +66,11 @@ export default function WaterPumpsPage() {
     const id = (data as any).id;
     await SocioEconomicApi.waterPumps.remove(token, String(id));
     setWaterPumpsData((prev) => prev.filter((e) => e.id !== String(id)));
+    addToast({
+      type: "success",
+      title: "Entry Deleted",
+      message: "The water pump entry has been deleted successfully.",
+    });
   };
 
   return (

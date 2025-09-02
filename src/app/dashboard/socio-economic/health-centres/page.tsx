@@ -6,6 +6,7 @@ import { SocioEconomicPageExample } from "../components/SocioEconomicPageExample
 import type { healthCentresEntryData } from "@/lib/socio-economic/socio-economic";
 import { SocioEconomicApi } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { useToast } from "@/components/ui/toast";
 import {
   healthCentreFromBackend,
   healthCentreToBackend,
@@ -17,6 +18,7 @@ export default function HealthCentresPage() {
   const [entries, setEntries] =
     useState<healthCentresEntryData[]>(initialEntries);
   const { token } = useAuth();
+  const { addToast } = useToast();
 
   useEffect(() => {
     const load = async () => {
@@ -31,7 +33,11 @@ export default function HealthCentresPage() {
             (Array.isArray(payload) ? payload : []);
         setEntries((items as any[]).map(healthCentreFromBackend));
       } catch (err) {
-        console.error("Failed to load Health Centres", err);
+        addToast({
+          type: "error",
+          title: "Load Failed",
+          message: "Failed to load health centres. Please try again.",
+        });
       }
     };
     load();
@@ -77,8 +83,17 @@ export default function HealthCentresPage() {
           payload?.items ||
           (Array.isArray(payload) ? payload : []);
       setEntries((items as any[]).map(healthCentreFromBackend));
+      addToast({
+        type: "success",
+        title: "Entry Created",
+        message: "The health centre entry has been created successfully.",
+      });
     } catch (err) {
-      console.error("Failed to create Health Centre", err);
+      addToast({
+        type: "error",
+        title: "Creation Failed",
+        message: "Failed to create health centre entry. Please try again.",
+      });
     }
   };
 
@@ -86,7 +101,11 @@ export default function HealthCentresPage() {
     if (!token) return;
     const id = String((data as any)?.id || "");
     if (!id) {
-      console.error("Missing id for Health Centre update; aborting");
+      addToast({
+        type: "error",
+        title: "Update Failed",
+        message: "Missing id for health centre update.",
+      });
       return;
     }
     try {
@@ -111,8 +130,17 @@ export default function HealthCentresPage() {
           payload?.items ||
           (Array.isArray(payload) ? payload : []);
       setEntries((items as any[]).map(healthCentreFromBackend));
+      addToast({
+        type: "success",
+        title: "Entry Updated",
+        message: "The health centre entry has been updated successfully.",
+      });
     } catch (err) {
-      console.error("Failed to update Health Centre", err);
+      addToast({
+        type: "error",
+        title: "Update Failed",
+        message: "Failed to update health centre entry. Please try again.",
+      });
     }
   };
 
@@ -120,7 +148,11 @@ export default function HealthCentresPage() {
     if (!token) return;
     const id = String((data as any)?.id || "");
     if (!id) {
-      console.error("Missing id for Health Centre delete; aborting");
+      addToast({
+        type: "error",
+        title: "Deletion Failed",
+        message: "Missing id for health centre deletion.",
+      });
       return;
     }
     try {
@@ -136,8 +168,17 @@ export default function HealthCentresPage() {
           payload?.items ||
           (Array.isArray(payload) ? payload : []);
       setEntries((items as any[]).map(healthCentreFromBackend));
+      addToast({
+        type: "success",
+        title: "Entry Deleted",
+        message: "The health centre entry has been deleted successfully.",
+      });
     } catch (err) {
-      console.error("Failed to delete Health Centre", err);
+      addToast({
+        type: "error",
+        title: "Deletion Failed",
+        message: "Failed to delete health centre entry. Please try again.",
+      });
     }
   };
 

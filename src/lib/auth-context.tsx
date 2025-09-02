@@ -1,6 +1,12 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useRef } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useRef,
+} from "react";
 import { useRouter } from "next/navigation";
 import { AuthApi } from "@/lib/api";
 
@@ -38,11 +44,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const storedOtpPending = localStorage.getItem("isOtpPending");
     const storedLoginTime = localStorage.getItem("loginTime");
     const effectiveToken = storedAccessToken || storedToken;
-    
-    if (effectiveToken && storedEmail && storedOtpPending !== "true" && storedLoginTime) {
+
+    if (
+      effectiveToken &&
+      storedEmail &&
+      storedOtpPending !== "true" &&
+      storedLoginTime
+    ) {
       const loginTime = parseInt(storedLoginTime);
       const currentTime = Date.now();
-      
+
       // Check if token has expired
       if (currentTime - loginTime < TOKEN_EXPIRATION_TIME) {
         // Token is still valid, restore authentication and set up auto logout
@@ -53,7 +64,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setupAutoLogout(loginTime);
       } else {
         // Token has expired, clear everything
-        console.log('Stored token has expired, clearing authentication');
         localStorage.removeItem("token");
         localStorage.removeItem("accessToken");
         localStorage.removeItem("userEmail");
@@ -92,14 +102,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsOtpPending(true);
       setIsAuthenticated(false); // Ensure not authenticated until OTP verified
       setToken(null); // Clear any existing token
-      
+
       // Store state in localStorage
       localStorage.setItem("userEmail", email);
       localStorage.setItem("isOtpPending", "true");
       localStorage.removeItem("token"); // Remove any existing token
       localStorage.removeItem("accessToken");
       localStorage.removeItem("loginTime"); // Remove login time until OTP verified
-      
+
       // Clear any existing auto logout timeout
       clearAutoLogout();
     } catch (error) {
@@ -121,31 +131,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const verifyOtpAndLogin = async (email: string, otp: string) => {
     try {
       const res = await AuthApi.verifyOtp({ email, otp });
-      const accessToken = res?.data && (res.data as any).accessToken ? (res.data as any).accessToken : (res as any)?.accessToken;
-      
+      const accessToken =
+        res?.data && (res.data as any).accessToken
+          ? (res.data as any).accessToken
+          : (res as any)?.accessToken;
+
       if (!accessToken) {
         throw new Error("Missing access token in response");
       }
-      
+
       // Set authenticated state
       setToken(accessToken);
       setIsAuthenticated(true);
       setIsOtpPending(false);
-      
+
       // Store login time for expiration tracking
       const loginTime = Date.now();
       localStorage.setItem("loginTime", loginTime.toString());
-      
+
       // Store in localStorage under both keys for compatibility
       localStorage.setItem("token", accessToken);
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("isOtpPending", "false");
-      
+
       // Request notification permission for session warnings
-      if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
+      if (
+        typeof window !== "undefined" &&
+        "Notification" in window &&
+        Notification.permission === "default"
+      ) {
         Notification.requestPermission();
       }
-      
+
       // Set up automatic logout after 10 hours
       setupAutoLogout(loginTime);
     } catch (error) {
@@ -173,17 +190,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUserEmail(null);
       setToken(null);
       setIsOtpPending(false);
-      
+
       // Clear localStorage
       localStorage.removeItem("token");
       localStorage.removeItem("accessToken");
       localStorage.removeItem("userEmail");
       localStorage.removeItem("isOtpPending");
       localStorage.removeItem("loginTime");
-      
+
       // Clear auto logout timeout
       clearAutoLogout();
-      
+
       router.push("/");
     }
   };
@@ -200,34 +217,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Calculate time until expiration
     const timeUntilExpiration = loginTime + TOKEN_EXPIRATION_TIME - Date.now();
-    
+
     if (timeUntilExpiration > 0) {
       // Set warning 5 minutes before expiration
-      const warningTime = Math.max(0, timeUntilExpiration - (5 * 60 * 1000));
+      const warningTime = Math.max(0, timeUntilExpiration - 5 * 60 * 1000);
       if (warningTime > 0) {
         warningTimeoutRef.current = setTimeout(() => {
           // Show warning notification
-          if (typeof window !== 'undefined' && 'Notification' in window) {
-            if (Notification.permission === 'granted') {
-              new Notification('Session Expiring Soon', {
-                body: 'Your session will expire in 5 minutes. Please save your work and log in again.',
-                icon: '/favicon.ico'
+          if (typeof window !== "undefined" && "Notification" in window) {
+            if (Notification.permission === "granted") {
+              new Notification("Session Expiring Soon", {
+                body: "Your session will expire in 5 minutes. Please save your work and log in again.",
+                icon: "/favicon.ico",
               });
             }
           }
           // Also show browser alert as fallback
-          alert('⚠️ Your session will expire in 5 minutes. Please save your work and log in again.');
+          alert(
+            "⚠️ Your session will expire in 5 minutes. Please save your work and log in again."
+          );
         }, warningTime);
       }
 
       // Set timeout for automatic logout
       logoutTimeoutRef.current = setTimeout(() => {
-        console.log('Token expired after 10 hours, logging out automatically');
         logout();
       }, timeUntilExpiration);
     } else {
       // Token already expired, logout immediately
-      console.log('Token already expired, logging out immediately');
       logout();
     }
   };
@@ -247,7 +264,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Fixed session window (10 hours from login). No activity-based extension.
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, token, userEmail, isOtpPending, isAuthInitialized, startLogin, verifyOtpAndLogin, logout }}>
+    <AuthContext.Provider
+      value={{
+        isAuthenticated,
+        token,
+        userEmail,
+        isOtpPending,
+        isAuthInitialized,
+        startLogin,
+        verifyOtpAndLogin,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

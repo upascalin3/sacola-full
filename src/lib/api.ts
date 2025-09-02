@@ -40,7 +40,7 @@ export interface RegisterUserDto {
   name?: string;
   firstName?: string;
   lastName?: string;
-  role?: 'user' | 'viewer';
+  role?: "user" | "viewer";
 }
 import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
 
@@ -90,40 +90,12 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    const message =
-      error?.response?.data?.message || error?.message || "Request failed";
-    const statusCode = error?.response?.status;
-    
-    // Enhanced error message based on status code and context
-    let enhancedMessage = message;
-    
-    if (statusCode === 404) {
-      if (message.toLowerCase().includes("user") || message.toLowerCase().includes("account")) {
-        enhancedMessage = "User account not found";
-      }
-    } else if (statusCode === 401) {
-      if (message.toLowerCase().includes("password") || message.toLowerCase().includes("credentials")) {
-        enhancedMessage = "Invalid password or credentials";
-      } else {
-        enhancedMessage = "Authentication failed";
-      }
-    } else if (statusCode === 403) {
-      enhancedMessage = "Access forbidden";
-    } else if (statusCode === 400) {
-      if (message.toLowerCase().includes("password")) {
-        enhancedMessage = "Invalid password format or incorrect password";
-      }
-    }
-    
-    const enhancedError = new Error(enhancedMessage);
+    // Import error handling utilities
+    const { handleApiError } = require("./error-handling");
 
-    // Preserve original error information
-    (enhancedError as any).response = error?.response;
-    (enhancedError as any).status = error?.response?.status;
-    (enhancedError as any).statusText = error?.response?.statusText;
-    (enhancedError as any).originalError = error;
-
-    return Promise.reject(enhancedError);
+    // Use the centralized error handling
+    const appError = handleApiError(error);
+    return Promise.reject(appError);
   }
 );
 
@@ -133,18 +105,6 @@ export async function apiFetch<TResponse, TBody = unknown>(
 ): Promise<TResponse> {
   const { method = "GET", token, body, query, headers, responseType } = options;
   const url = buildUrl(path) + toQueryString(query);
-
-  // Debug logging for POST/PUT requests
-  if ((method === "POST" || method === "PUT") && body) {
-    console.log(`API ${method} ${path}:`, {
-      url,
-      body,
-      headers: {
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...(headers || {}),
-      },
-    });
-  }
 
   const res = await api.request<TResponse>({
     url,
@@ -195,11 +155,18 @@ export const AuthApi = {
       body,
     });
   },
-  resetPasswordWithOtp(body: { email: string; otp: string; newPassword: string }) {
-    return apiFetch<ApiResponse<{ message: string }>>("/auth/reset-password-otp", {
-      method: "POST",
-      body,
-    });
+  resetPasswordWithOtp(body: {
+    email: string;
+    otp: string;
+    newPassword: string;
+  }) {
+    return apiFetch<ApiResponse<{ message: string }>>(
+      "/auth/reset-password-otp",
+      {
+        method: "POST",
+        body,
+      }
+    );
   },
   logout(token: string) {
     return apiFetch<ApiResponse<unknown>>("/auth/logout", {
@@ -271,10 +238,7 @@ export const UsersApi = {
   me(token: string) {
     return apiFetch<ApiResponse<UserProfile>>("/api/users/me", { token });
   },
-  changeMyPassword(
-    token: string,
-    body: ChangePasswordDto
-  ) {
+  changeMyPassword(token: string, body: ChangePasswordDto) {
     return apiFetch<ApiResponse<unknown>>("/api/users/me/password", {
       method: "PUT",
       token,
@@ -358,7 +322,9 @@ export const ReportsApi = {
       // Retry with alternative schema: capitalized enums + startDate/endDate
       const altBody = {
         projectCategory:
-          body.projectCategory === "conservation" ? "Conservation" : "Socio-Economic",
+          body.projectCategory === "conservation"
+            ? "Conservation"
+            : "Socio-Economic",
         projectType: body.projectType,
         reportType:
           body.reportType === "monthly"

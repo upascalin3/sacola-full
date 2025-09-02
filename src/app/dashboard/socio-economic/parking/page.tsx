@@ -5,6 +5,7 @@ import SocioEconomicTabs from "../components/SocioEconomicTabs";
 import { SocioEconomicPageExample } from "../components/SocioEconomicPageExample";
 import { SocioEconomicApi } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { useToast } from "@/components/ui/toast";
 import {
   parkingFromBackend,
   parkingToBackend,
@@ -15,6 +16,7 @@ const initialEntries: any[] = [];
 export default function ParkingPage() {
   const [entries, setEntries] = useState<any[]>(initialEntries);
   const { token } = useAuth();
+  const { addToast } = useToast();
 
   useEffect(() => {
     const load = async () => {
@@ -60,8 +62,22 @@ export default function ParkingPage() {
   const handleDelete = async (data: any) => {
     if (!token) return;
     const id = (data as any).id;
-    await SocioEconomicApi.parking.remove(token, String(id));
-    setEntries((prev) => prev.filter((e: any) => e.id !== String(id)));
+    try {
+      await SocioEconomicApi.parking.remove(token, String(id));
+      setEntries((prev) => prev.filter((e: any) => e.id !== String(id)));
+      addToast({
+        type: "success",
+        title: "Entry Deleted",
+        message: "The parking entry has been deleted successfully.",
+      });
+    } catch (err) {
+      addToast({
+        type: "error",
+        title: "Deletion Failed",
+        message: "Failed to delete parking entry. Please try again.",
+      });
+      throw err;
+    }
   };
 
   return (

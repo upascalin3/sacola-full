@@ -5,6 +5,7 @@ import { SocioEconomicTabs, SocioEconomicPageExample } from "../../components";
 import type { HousingRepairmentsEntryData } from "@/lib/socio-economic/socio-economic";
 import { SocioEconomicApi } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { useToast } from "@/components/ui/toast";
 import {
   housingRepairsFromBackend,
   housingRepairsToBackend,
@@ -17,6 +18,7 @@ export default function HousingRepairmentsPage() {
     useState<HousingRepairmentsEntryData[]>(initialEntries);
   const [loading, setLoading] = useState(false);
   const { token } = useAuth();
+  const { addToast } = useToast();
 
   const loadData = async () => {
     if (!token) return;
@@ -31,7 +33,11 @@ export default function HousingRepairmentsPage() {
           (Array.isArray(payload) ? payload : []);
       setEntries((items as any[]).map(housingRepairsFromBackend));
     } catch (err) {
-      console.error("Failed to load Housing Repairs entries", err);
+      addToast({
+        type: "error",
+        title: "Load Failed",
+        message: "Failed to load housing repairs entries. Please try again.",
+      });
     } finally {
       setLoading(false);
     }
@@ -65,7 +71,11 @@ export default function HousingRepairmentsPage() {
       setEntries((prev) => [newEntry, ...prev]);
       await loadData(); // Refresh from API
     } catch (err) {
-      console.error("Failed to create Housing Repairs entry", err);
+      addToast({
+        type: "error",
+        title: "Creation Failed",
+        message: "Failed to create housing repair entry. Please try again.",
+      });
       // Don't save locally - just show error
       throw err; // Re-throw to let the form handle the error
     }
@@ -75,7 +85,11 @@ export default function HousingRepairmentsPage() {
     if (!token) return;
     const id = String((data as any)?.id || "");
     if (!id) {
-      console.error("Missing id for Housing Repairs update; aborting");
+      addToast({
+        type: "error",
+        title: "Update Failed",
+        message: "Missing id for housing repair update.",
+      });
       return;
     }
     try {
@@ -91,7 +105,11 @@ export default function HousingRepairmentsPage() {
       );
       await loadData(); // Refresh from API
     } catch (err) {
-      console.error("Failed to update Housing Repairs entry", err);
+      addToast({
+        type: "error",
+        title: "Update Failed",
+        message: "Failed to update housing repair entry. Please try again.",
+      });
       // Don't update locally - just show error
       throw err; // Re-throw to let the form handle the error
     }
@@ -101,16 +119,29 @@ export default function HousingRepairmentsPage() {
     if (!token) return;
     const id = String((data as any)?.id || "");
     if (!id) {
-      console.error("Missing id for Housing Repairs delete; aborting");
+      addToast({
+        type: "error",
+        title: "Deletion Failed",
+        message: "Missing id for housing repair deletion.",
+      });
       return;
     }
     try {
       await SocioEconomicApi.housingRepairs.remove(token, String(id));
       setEntries((prev) => prev.filter((e) => e.id !== String(id)));
       await loadData(); // Refresh from API
+      addToast({
+        type: "success",
+        title: "Entry Deleted",
+        message: "The housing repair entry has been deleted successfully.",
+      });
     } catch (err) {
-      console.error("Failed to delete Housing Repairs entry", err);
       // Don't delete locally - just show error
+      addToast({
+        type: "error",
+        title: "Deletion Failed",
+        message: "Failed to delete housing repair entry. Please try again.",
+      });
       throw err; // Re-throw to let the form handle the error
     }
   };

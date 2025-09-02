@@ -2,6 +2,8 @@
 
 import Sidebar from "@/components/Sidebar";
 import { Card } from "@/components/ui/card";
+import { CONSERVATION_CONFIGS } from "@/lib/conservation/types";
+import { SOCIO_ECONOMIC_CONFIGS } from "@/lib/socio-economic/types";
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Clock, CheckCircle, AlertCircle, FileText } from "lucide-react";
@@ -62,13 +64,17 @@ export default function DashboardPage() {
             <span className="text-gray-700 text-base mb-2">
               Conservation Activities
             </span>
-            <span className="text-3xl font-bold text-gray-900">5</span>
+            <span className="text-3xl font-bold text-gray-900">
+              {Object.keys(CONSERVATION_CONFIGS).length}
+            </span>
           </Card>
           <Card className="p-6 flex flex-col justify-center items-start">
             <span className="text-gray-700 text-base mb-2">
               Socio-Economic Activities
             </span>
-            <span className="text-3xl font-bold text-gray-900">11</span>
+            <span className="text-3xl font-bold text-gray-900">
+              {Object.keys(SOCIO_ECONOMIC_CONFIGS).length}
+            </span>
           </Card>
         </div>
       </section>

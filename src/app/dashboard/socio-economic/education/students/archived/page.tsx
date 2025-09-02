@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Users } from "lucide-react";
 import { SocioEconomicApi } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { useToast } from "@/components/ui/toast";
 import {
   eduStudentsFromBackend,
   eduStudentsToBackend,
@@ -29,24 +30,26 @@ export default function ArchivedStudentsPage() {
   const [selectedEntry, setSelectedEntry] =
     useState<educationStudentsEntryData | null>(null);
   const { token } = useAuth();
+  const { addToast } = useToast();
 
   const loadData = async () => {
     if (!token) return;
     try {
       setLoading(true);
-      console.log("Loading archived students...");
       const res = await SocioEconomicApi.educationStudents.archived(token);
-      console.log("Archived students API response:", res);
       const payload = res as any;
       const items = Array.isArray(payload?.data)
         ? payload.data
         : payload?.data?.items ||
           payload?.items ||
           (Array.isArray(payload) ? payload : []);
-      console.log("Processed archived items:", items);
       setEntries((items as any[]).map(eduStudentsFromBackend));
     } catch (err) {
-      console.error("Failed to load archived Education Students entries", err);
+      addToast({
+        type: "error",
+        title: "Load Failed",
+        message: "Failed to load archived students. Please try again.",
+      });
     } finally {
       setLoading(false);
     }
@@ -72,13 +75,10 @@ export default function ArchivedStudentsPage() {
   const handleUnarchive = async (entry: educationStudentsEntryData) => {
     if (!token) return;
     try {
-      console.log("Unarchiving student:", entry.id);
       const response = await SocioEconomicApi.educationStudents.unarchive(
         token,
         String(entry.id)
       );
-      console.log("Unarchive API response:", response);
-      console.log("Student unarchived successfully");
       // Remove the unarchived student from the current list instead of reloading
       setEntries((prev) => prev.filter((item) => item.id !== entry.id));
 
@@ -86,21 +86,38 @@ export default function ArchivedStudentsPage() {
       setTimeout(() => {
         loadData();
       }, 1000);
+
+      addToast({
+        type: "success",
+        title: "Student Unarchived",
+        message: "The student entry has been unarchived successfully.",
+      });
     } catch (err) {
-      console.error("Failed to unarchive Education Student", err);
+      addToast({
+        type: "error",
+        title: "Unarchive Failed",
+        message: "Failed to unarchive student entry. Please try again.",
+      });
     }
   };
 
   const handleDelete = async (entry: educationStudentsEntryData) => {
     if (!token) return;
     try {
-      console.log("Deleting student:", entry.id);
       await SocioEconomicApi.educationStudents.remove(token, String(entry.id));
-      console.log("Student deleted successfully");
       // Remove the deleted student from the current list instead of reloading
       setEntries((prev) => prev.filter((item) => item.id !== entry.id));
+      addToast({
+        type: "success",
+        title: "Student Entry Deleted",
+        message: "The student entry has been deleted successfully.",
+      });
     } catch (err) {
-      console.error("Failed to delete archived Education Student", err);
+      addToast({
+        type: "error",
+        title: "Deletion Failed",
+        message: "Failed to delete student entry. Please try again.",
+      });
     }
   };
 

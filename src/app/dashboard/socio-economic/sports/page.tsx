@@ -6,6 +6,7 @@ import { SocioEconomicPageExample } from "../components/SocioEconomicPageExample
 import type { sportsEntryData } from "@/lib/socio-economic/socio-economic";
 import { SocioEconomicApi } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { useToast } from "@/components/ui/toast";
 import {
   sportsFromBackend,
   sportsToBackend,
@@ -16,6 +17,7 @@ const initialEntries: sportsEntryData[] = [];
 export default function SportsPage() {
   const [entries, setEntries] = useState<sportsEntryData[]>(initialEntries);
   const { token } = useAuth();
+  const { addToast } = useToast();
 
   const loadData = async () => {
     if (!token) return;
@@ -31,7 +33,11 @@ export default function SportsPage() {
       const transformedEntries = (items as any[]).map(sportsFromBackend);
       setEntries(transformedEntries);
     } catch (err) {
-      console.error("Failed to load Sports entries", err);
+      addToast({
+        type: "error",
+        title: "Load Failed",
+        message: "Failed to load sports entries. Please try again.",
+      });
     }
   };
 
@@ -62,7 +68,11 @@ export default function SportsPage() {
       setEntries((prev) => [sportsFromBackend(created), ...prev]);
       await loadData();
     } catch (err) {
-      console.error("Failed to create Sports entry", err);
+      addToast({
+        type: "error",
+        title: "Creation Failed",
+        message: "Failed to create sports entry. Please try again.",
+      });
     }
   };
 
@@ -70,7 +80,11 @@ export default function SportsPage() {
     if (!token) return;
     const id = String((data as any)?.id || "");
     if (!id) {
-      console.error("Missing id for Sports update; aborting");
+      addToast({
+        type: "error",
+        title: "Update Failed",
+        message: "Missing id for sports update.",
+      });
       return;
     }
     const res = await SocioEconomicApi.sports.update(
@@ -89,12 +103,30 @@ export default function SportsPage() {
     if (!token) return;
     const id = String((data as any)?.id || "");
     if (!id) {
-      console.error("Missing id for Sports delete; aborting");
+      addToast({
+        type: "error",
+        title: "Deletion Failed",
+        message: "Missing id for sports deletion.",
+      });
       return;
     }
-    await SocioEconomicApi.sports.remove(token, String(id));
-    setEntries((prev) => prev.filter((e) => e.id !== String(id)));
-    await loadData();
+    try {
+      await SocioEconomicApi.sports.remove(token, String(id));
+      setEntries((prev) => prev.filter((e) => e.id !== String(id)));
+      await loadData();
+      addToast({
+        type: "success",
+        title: "Entry Deleted",
+        message: "The sports entry has been deleted successfully.",
+      });
+    } catch (err) {
+      addToast({
+        type: "error",
+        title: "Deletion Failed",
+        message: "Failed to delete sports entry. Please try again.",
+      });
+      throw err;
+    }
   };
 
   return (

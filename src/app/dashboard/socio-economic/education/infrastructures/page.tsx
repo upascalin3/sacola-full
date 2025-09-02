@@ -5,6 +5,7 @@ import { SocioEconomicTabs, SocioEconomicPageExample } from "../../components";
 import type { educationInfrastructuresEntryData } from "@/lib/socio-economic/socio-economic";
 import { SocioEconomicApi } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { useToast } from "@/components/ui/toast";
 import {
   eduInfraFromBackend,
   eduInfraToBackend,
@@ -17,6 +18,7 @@ export default function EducationInfrastructuresPage() {
     useState<educationInfrastructuresEntryData[]>(initialEntries);
   const [loading, setLoading] = useState(false);
   const { token } = useAuth();
+  const { addToast } = useToast();
 
   const loadData = async () => {
     if (!token) return;
@@ -31,7 +33,12 @@ export default function EducationInfrastructuresPage() {
           (Array.isArray(payload) ? payload : []);
       setEntries((items as any[]).map(eduInfraFromBackend));
     } catch (err) {
-      console.error("Failed to load Education Infrastructures entries", err);
+      addToast({
+        type: "error",
+        title: "Load Failed",
+        message:
+          "Failed to load education infrastructures entries. Please try again.",
+      });
     } finally {
       setLoading(false);
     }
@@ -65,8 +72,19 @@ export default function EducationInfrastructuresPage() {
       const created = (res as any)?.data || res;
       setEntries((prev) => [eduInfraFromBackend(created), ...prev]);
       await loadData();
+      addToast({
+        type: "success",
+        title: "Entry Created",
+        message:
+          "The education infrastructure entry has been created successfully.",
+      });
     } catch (err) {
-      console.error("Failed to create Education Infrastructures entry", err);
+      addToast({
+        type: "error",
+        title: "Creation Failed",
+        message:
+          "Failed to create education infrastructure entry. Please try again.",
+      });
     }
   };
 
@@ -76,9 +94,11 @@ export default function EducationInfrastructuresPage() {
       const payload = eduInfraToBackend(data);
       const id = String((data as any)?.id || "");
       if (!id) {
-        console.error(
-          "Missing id for Education Infrastructures update; aborting"
-        );
+        addToast({
+          type: "error",
+          title: "Update Failed",
+          message: "Missing id for education infrastructure update.",
+        });
         return;
       }
       const res = await SocioEconomicApi.educationInfrastructures.update(
@@ -93,8 +113,19 @@ export default function EducationInfrastructuresPage() {
         )
       );
       await loadData();
+      addToast({
+        type: "success",
+        title: "Entry Updated",
+        message:
+          "The education infrastructure entry has been updated successfully.",
+      });
     } catch (err) {
-      console.error("Failed to update Education Infrastructures entry", err);
+      addToast({
+        type: "error",
+        title: "Update Failed",
+        message:
+          "Failed to update education infrastructure entry. Please try again.",
+      });
     }
   };
 
@@ -103,16 +134,29 @@ export default function EducationInfrastructuresPage() {
     try {
       const id = String((data as any)?.id || "");
       if (!id) {
-        console.error(
-          "Missing id for Education Infrastructures delete; aborting"
-        );
+        addToast({
+          type: "error",
+          title: "Deletion Failed",
+          message: "Missing id for education infrastructure deletion.",
+        });
         return;
       }
       await SocioEconomicApi.educationInfrastructures.remove(token, String(id));
       setEntries((prev) => prev.filter((item) => item.id !== String(id)));
       await loadData();
+      addToast({
+        type: "success",
+        title: "Entry Deleted",
+        message:
+          "The education infrastructure entry has been deleted successfully.",
+      });
     } catch (err) {
-      console.error("Failed to delete Education Infrastructures entry", err);
+      addToast({
+        type: "error",
+        title: "Deletion Failed",
+        message:
+          "Failed to delete education infrastructure entry. Please try again.",
+      });
     }
   };
 

@@ -46,6 +46,7 @@ export function ConservationPageExample({
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [isRoleLoading, setIsRoleLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -97,13 +98,17 @@ export function ConservationPageExample({
   };
 
   const handleUpdateEntry = async (data: ConservationData) => {
-    if (onUpdateEntry) {
+    if (!onUpdateEntry) return;
+    setIsSubmitting(true);
+    try {
       await onUpdateEntry(data);
       addActivity({
         icon: "edit",
         title: `${config.title} entry updated`,
         description: `Entry ${(data as any).id ?? ""} updated`,
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -133,10 +138,13 @@ export function ConservationPageExample({
     return fields.slice(0, 3);
   };
 
+  // Use DB order as-is, but display last entry first (reverse)
+  const baseEntries = useMemo(() => [...entries].reverse(), [entries]);
+
   const filteredEntries = useMemo(() => {
-    if (!searchTerm.trim()) return entries;
+    if (!searchTerm.trim()) return baseEntries;
     const lower = searchTerm.toLowerCase();
-    return entries.filter((entry) => {
+    return baseEntries.filter((entry) => {
       const values = Object.values(entry as unknown as Record<string, unknown>);
       return values.some((v) => {
         if (v == null) return false;
@@ -145,7 +153,7 @@ export function ConservationPageExample({
         return String(v).toLowerCase().includes(lower);
       });
     });
-  }, [entries, searchTerm]);
+  }, [baseEntries, searchTerm]);
 
   const paginatedEntries = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -390,7 +398,9 @@ export function ConservationPageExample({
                   No entries yet
                 </h3>
                 <p className="text-gray-500 mt-1">
-                  {isViewer ? "Viewer role cannot create entries." : "Get started by creating your first entry."}
+                  {isViewer
+                    ? "Viewer role cannot create entries."
+                    : "Get started by creating your first entry."}
                 </p>
               </div>
               {!isViewer && (
@@ -431,7 +441,7 @@ export function ConservationPageExample({
           modalState.action === "create" ? handleCreateEntry : handleUpdateEntry
         }
         onDelete={handleDeleteEntry}
-        isLoading={isCreating}
+        isLoading={isCreating || isSubmitting}
       />
     </div>
   );

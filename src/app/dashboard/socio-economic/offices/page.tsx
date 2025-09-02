@@ -6,6 +6,7 @@ import { SocioEconomicPageExample } from "../components/SocioEconomicPageExample
 import type { officesEntryData } from "@/lib/socio-economic/socio-economic";
 import { SocioEconomicApi } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { useToast } from "@/components/ui/toast";
 import {
   officesFromBackend,
   officesToBackend,
@@ -17,6 +18,7 @@ export default function OfficesPage() {
   const [entries, setEntries] = useState<officesEntryData[]>(initialEntries);
   const [isLoading, setIsLoading] = useState(false);
   const { token } = useAuth();
+  const { addToast } = useToast();
 
   const loadData = async () => {
     if (!token) return;
@@ -34,8 +36,11 @@ export default function OfficesPage() {
       const loadedEntries = (items as any[]).map(officesFromBackend);
       setEntries(loadedEntries);
     } catch (err) {
-      console.error("Failed to load Offices entries from API", err);
-      // Don't fallback to localStorage - just show empty state
+      addToast({
+        type: "error",
+        title: "Load Failed",
+        message: "Failed to load offices entries. Please try again.",
+      });
       setEntries([]);
     } finally {
       setIsLoading(false);
@@ -70,7 +75,11 @@ export default function OfficesPage() {
       setEntries((prev) => [newEntry, ...prev]);
       await loadData(); // Refresh from API
     } catch (err) {
-      console.error("Failed to create Offices entry", err);
+      addToast({
+        type: "error",
+        title: "Creation Failed",
+        message: "Failed to create office entry. Please try again.",
+      });
       // Don't save locally - just show error
       throw err; // Re-throw to let the form handle the error
     }
@@ -80,7 +89,11 @@ export default function OfficesPage() {
     if (!token) return;
     const id = String((data as any)?.id || "");
     if (!id) {
-      console.error("Missing id for Offices update; aborting");
+      addToast({
+        type: "error",
+        title: "Update Failed",
+        message: "Missing id for office update.",
+      });
       return;
     }
     try {
@@ -96,7 +109,11 @@ export default function OfficesPage() {
       );
       await loadData(); // Refresh from API
     } catch (err) {
-      console.error("Failed to update Offices entry", err);
+      addToast({
+        type: "error",
+        title: "Update Failed",
+        message: "Failed to update office entry. Please try again.",
+      });
       // Don't update locally - just show error
       throw err; // Re-throw to let the form handle the error
     }
@@ -106,16 +123,29 @@ export default function OfficesPage() {
     if (!token) return;
     const id = String((data as any)?.id || "");
     if (!id) {
-      console.error("Missing id for Offices delete; aborting");
+      addToast({
+        type: "error",
+        title: "Deletion Failed",
+        message: "Missing id for office deletion.",
+      });
       return;
     }
     try {
       await SocioEconomicApi.offices.remove(token, String(id));
       setEntries((prev) => prev.filter((e) => e.id !== String(id)));
       await loadData(); // Refresh from API
+      addToast({
+        type: "success",
+        title: "Entry Deleted",
+        message: "The office entry has been deleted successfully.",
+      });
     } catch (err) {
-      console.error("Failed to delete Offices entry", err);
       // Don't delete locally - just show error
+      addToast({
+        type: "error",
+        title: "Deletion Failed",
+        message: "Failed to delete office entry. Please try again.",
+      });
       throw err; // Re-throw to let the form handle the error
     }
   };

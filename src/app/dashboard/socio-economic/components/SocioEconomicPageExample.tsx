@@ -32,6 +32,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { addActivity } from "@/lib/activity";
 import { useAuth } from "@/lib/auth-context";
 import { UsersApi, UserProfile } from "@/lib/api";
+import { useToast } from "@/components/ui/toast";
 
 interface SocioEconomicPageExampleProps {
   socioEconomicType: SocioEconomicType;
@@ -65,6 +66,8 @@ export function SocioEconomicPageExample({
   const { token } = useAuth();
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [isRoleLoading, setIsRoleLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { addToast } = useToast();
 
   useEffect(() => {
     const loadUser = async () => {
@@ -99,24 +102,32 @@ export function SocioEconomicPageExample({
   } = useSocioEconomicModals();
 
   const handleCreateEntry = async (data: SocioEconomicData) => {
-    if (onCreateEntry) {
+    if (!onCreateEntry) return;
+    setIsSubmitting(true);
+    try {
       await onCreateEntry(data);
       addActivity({
         icon: "success",
         title: `New ${config.title} entry created`,
         description: `${config.title} item added`,
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleUpdateEntry = async (data: SocioEconomicData) => {
-    if (onUpdateEntry) {
+    if (!onUpdateEntry) return;
+    setIsSubmitting(true);
+    try {
       await onUpdateEntry(data);
       addActivity({
         icon: "edit",
         title: `${config.title} entry updated`,
         description: `Entry ${(data as any).id ?? ""} updated`,
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -169,10 +180,13 @@ export function SocioEconomicPageExample({
     return fields.slice(0, 3);
   };
 
+  // Use DB order as-is, but display last entry first (reverse)
+  const baseEntries = useMemo(() => [...entries].reverse(), [entries]);
+
   const filteredEntries = useMemo(() => {
-    if (!searchTerm.trim()) return entries;
+    if (!searchTerm.trim()) return baseEntries;
     const lower = searchTerm.toLowerCase();
-    return entries.filter((entry) => {
+    return baseEntries.filter((entry) => {
       const values = Object.values(entry as unknown as Record<string, unknown>);
       return values.some((v) => {
         if (v == null) return false;
@@ -182,7 +196,7 @@ export function SocioEconomicPageExample({
         return String(v).toLowerCase().includes(lower);
       });
     });
-  }, [entries, searchTerm]);
+  }, [baseEntries, searchTerm]);
 
   const paginatedEntries = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -235,7 +249,14 @@ export function SocioEconomicPageExample({
 
   const handleOpenDetails = (entry: SocioEconomicData) => {
     const entryId = String((entry as any)?.id || "");
-    if (!entryId) return;
+    if (!entryId) {
+      addToast({
+        type: "error",
+        title: "Missing ID",
+        message: "Cannot open details: entry has no ID.",
+      });
+      return;
+    }
     const params = new URLSearchParams(searchParams.toString());
     params.set("id", entryId);
     router.replace(`${pathname}?${params.toString()}`);
@@ -245,14 +266,25 @@ export function SocioEconomicPageExample({
   const safeOpenUpdate = (entry: SocioEconomicData) => {
     const entryId = String((entry as any)?.id || "");
     if (!entryId) {
-      console.warn("Cannot open update modal: entry has no ID", entry);
+      addToast({
+        type: "error",
+        title: "Missing ID",
+        message: "Cannot open update: entry has no ID.",
+      });
       return;
     }
     openUpdateModal(entry);
   };
 
   const safeOpenDelete = (entry: SocioEconomicData) => {
-    if (!String((entry as any)?.id || "")) return;
+    if (!String((entry as any)?.id || "")) {
+      addToast({
+        type: "error",
+        title: "Missing ID",
+        message: "Cannot delete: entry has no ID.",
+      });
+      return;
+    }
     openDeleteModal(entry);
   };
 
@@ -461,7 +493,9 @@ export function SocioEconomicPageExample({
                   No entries yet
                 </h3>
                 <p className="text-gray-500 mt-1">
-                  {isViewer ? "Viewer role cannot create entries." : "Get started by creating your first entry."}
+                  {isViewer
+                    ? "Viewer role cannot create entries."
+                    : "Get started by creating your first entry."}
                 </p>
               </div>
               {!isViewer && showAddButton && (
@@ -502,6 +536,7 @@ export function SocioEconomicPageExample({
           modalState.action === "create" ? handleCreateEntry : handleUpdateEntry
         }
         onDelete={handleDeleteEntry}
+        isLoading={isSubmitting}
       />
     </div>
   );

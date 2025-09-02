@@ -10,6 +10,7 @@ import {
   bambooToBackend,
 } from "@/lib/conservation/adapters";
 import { useAuth } from "@/lib/auth-context";
+import { useToast } from "@/components/ui/toast";
 
 const initialBambooData: BambooEntryData[] = [];
 
@@ -18,6 +19,7 @@ export default function BambooPage() {
     useState<BambooEntryData[]>(initialBambooData);
   const [loading, setLoading] = useState(false);
   const { token } = useAuth();
+  const { addToast } = useToast();
 
   const loadData = async (filters?: any) => {
     if (!token) return;
@@ -34,13 +36,11 @@ export default function BambooPage() {
         if (filters.limit) queryParams.limit = filters.limit;
       }
 
-      console.log("Loading bamboo data with params:", queryParams);
       const res = await ConservationApi.bamboo.list(token, queryParams);
       const items =
         (res as any)?.data?.items ||
         (res as any)?.items ||
         (Array.isArray(res) ? res : []);
-      console.log("Bamboo data received:", items);
       const sortedItems = (items as any[])
         .map(bambooFromBackend)
         .sort((a, b) => {
@@ -51,7 +51,7 @@ export default function BambooPage() {
         });
       setBambooData(sortedItems);
     } catch (error) {
-      console.error("Failed to load bamboo data:", error);
+      // Error will be handled by the calling component
     } finally {
       setLoading(false);
     }
@@ -64,34 +64,24 @@ export default function BambooPage() {
   const handleCreate = async (data: ConservationData) => {
     if (!token) return;
     try {
-      console.log("Creating bamboo entry with data:", data);
-      console.log("Data types:", {
-        distanceCovered: typeof (data as any).distanceCovered,
-        location: typeof (data as any).location,
-        datePlanted: typeof (data as any).datePlanted,
-        description: typeof (data as any).description,
-      });
-
       const payload = data as unknown as BambooEntryData;
       const backendData = bambooToBackend(payload);
-      console.log("Converted to backend format:", backendData);
-      console.log("Backend data types:", {
-        distanceCovered: typeof backendData.distanceCovered,
-        location: typeof backendData.location,
-        datePlanted: typeof backendData.datePlanted,
-        description: typeof backendData.description,
-      });
 
       const res = await ConservationApi.bamboo.create(token, backendData);
       const created = (res as any)?.data || res;
       const newEntry = bambooFromBackend(created);
       setBambooData((prev) => [newEntry, ...prev]);
+      
+      addToast({
+        type: "success",
+        title: "Bamboo Entry Created",
+        message: "The bamboo entry has been created successfully.",
+      });
     } catch (error) {
-      console.error("Failed to create bamboo entry:", error);
-      console.error("Error details:", {
-        message: (error as any).message,
-        stack: (error as any).stack,
-        data: data,
+      addToast({
+        type: "error",
+        title: "Creation Failed",
+        message: "Failed to create bamboo entry. Please try again.",
       });
       throw error;
     }
@@ -113,8 +103,18 @@ export default function BambooPage() {
       );
       // Reload fresh data from server after update
       await loadData();
+      
+      addToast({
+        type: "success",
+        title: "Bamboo Entry Updated",
+        message: "The bamboo entry has been updated successfully.",
+      });
     } catch (error) {
-      console.error("Failed to update bamboo entry:", error);
+      addToast({
+        type: "error",
+        title: "Update Failed",
+        message: "Failed to update bamboo entry. Please try again.",
+      });
       throw error;
     }
   };
@@ -127,8 +127,18 @@ export default function BambooPage() {
       setBambooData((prev) => prev.filter((e) => e.id !== String(id)));
       // Reload fresh data from server after delete
       await loadData();
+      
+      addToast({
+        type: "success",
+        title: "Bamboo Entry Deleted",
+        message: "The bamboo entry has been deleted successfully.",
+      });
     } catch (error) {
-      console.error("Failed to delete bamboo entry:", error);
+      addToast({
+        type: "error",
+        title: "Deletion Failed",
+        message: "Failed to delete bamboo entry. Please try again.",
+      });
       throw error;
     }
   };
