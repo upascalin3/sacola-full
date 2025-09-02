@@ -67,6 +67,7 @@ export function SocioEconomicPageExample({
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [isRoleLoading, setIsRoleLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { addToast } = useToast();
 
   useEffect(() => {
@@ -132,13 +133,17 @@ export function SocioEconomicPageExample({
   };
 
   const handleDeleteEntry = async () => {
-    if (onDeleteEntry && modalState.data) {
+    if (!onDeleteEntry || !modalState.data) return;
+    setIsDeleting(true);
+    try {
       await onDeleteEntry(modalState.data);
       addActivity({
         icon: "delete",
         title: `${config.title} entry deleted`,
         description: `Entry ${(modalState.data as any).id ?? ""} deleted`,
       });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -536,7 +541,7 @@ export function SocioEconomicPageExample({
           modalState.action === "create" ? handleCreateEntry : handleUpdateEntry
         }
         onDelete={handleDeleteEntry}
-        isLoading={isSubmitting}
+        isLoading={isSubmitting || isDeleting}
       />
     </div>
   );

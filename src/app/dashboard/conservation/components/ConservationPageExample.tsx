@@ -47,6 +47,7 @@ export function ConservationPageExample({
   const [isRoleLoading, setIsRoleLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -113,13 +114,17 @@ export function ConservationPageExample({
   };
 
   const handleDeleteEntry = async () => {
-    if (onDeleteEntry && modalState.data) {
+    if (!onDeleteEntry || !modalState.data) return;
+    setIsDeleting(true);
+    try {
       await onDeleteEntry(modalState.data);
       addActivity({
         icon: "delete",
         title: `${config.title} entry deleted`,
         description: `Entry ${(modalState.data as any).id ?? ""} deleted`,
       });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -441,7 +446,7 @@ export function ConservationPageExample({
           modalState.action === "create" ? handleCreateEntry : handleUpdateEntry
         }
         onDelete={handleDeleteEntry}
-        isLoading={isCreating || isSubmitting}
+        isLoading={isCreating || isSubmitting || isDeleting}
       />
     </div>
   );
